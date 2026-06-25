@@ -15,9 +15,6 @@ function wpFirebaseReady() {
 }
 
 // Wait for Firebase Auth to finish restoring the session on page load
-// (auth.currentUser is null for a brief moment after a refresh, until
-// Firebase re-hydrates it from its own storage). Resolves with the
-// Firebase Auth user, or null if nobody is signed in.
 function wpAuthReady() {
   return wpFirebaseReady().then((fb) => new Promise((resolve) => {
     const unsub = fb.onAuthStateChanged(fb.auth, (fbUser) => {
@@ -72,10 +69,11 @@ async function syncUserProfile(fbUser, extra) {
   const fb = await wpFirebaseReady();
   const userRef = fb.ref(fb.db, `users/${fbUser.uid}`);
   const snap = await fb.get(userRef);
+
   if (snap.exists()) {
-    // Existing profile — return as-is (don't overwrite jina/simu/mkoa on every login).
     return { id: fbUser.uid, ...snap.val() };
   }
+
   // First time we see this Firebase Auth user — create their profile.
   const profile = {
     id: fbUser.uid,
@@ -86,6 +84,7 @@ async function syncUserProfile(fbUser, extra) {
     isAdmin: false,
     createdAt: new Date().toISOString(),
   };
+
   await fb.set(userRef, profile);
   return profile;
 }
@@ -94,14 +93,21 @@ async function syncUserProfile(fbUser, extra) {
 async function registerUser({ jina, simu, mkoa, email, pass }) {
   const fb = await wpFirebaseReady();
   let cred;
+
   try {
     cred = await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
   } catch (e) {
     throw new Error(authErrorMessage(e));
   }
+
   if (jina) {
-    try { await fb.updateProfile(cred.user, { displayName: jina }); } catch (e) { /* non-fatal */ }
+    try {
+      await fb.updateProfile(cred.user, { displayName: jina });
+    } catch (e) {
+      // non-fatal
+    }
   }
+
   return syncUserProfile(cred.user, { jina, simu, mkoa });
 }
 
@@ -109,11 +115,13 @@ async function registerUser({ jina, simu, mkoa, email, pass }) {
 async function loginUser(email, pass) {
   const fb = await wpFirebaseReady();
   let cred;
+
   try {
     cred = await fb.signInWithEmailAndPassword(fb.auth, email, pass);
   } catch (e) {
     throw new Error(authErrorMessage(e));
   }
+
   return syncUserProfile(cred.user);
 }
 
@@ -121,12 +129,30 @@ async function loginUser(email, pass) {
 async function loginWithGoogle() {
   const fb = await wpFirebaseReady();
   let cred;
+
   try {
     cred = await fb.signInWithPopup(fb.auth, fb.googleProvider);
   } catch (e) {
     throw new Error(authErrorMessage(e));
   }
+
   return syncUserProfile(cred.user);
+}
+
+// Forgot password / reset link
+async function sendPasswordReset(email) {
+  const fb = await wpFirebaseReady();
+
+  if (!email || !email.trim()) {
+    throw new Error('Weka barua pepe kwanza.');
+  }
+
+  try {
+    await fb.sendPasswordResetEmail(fb.auth, email.trim());
+    return true;
+  } catch (e) {
+    throw new Error(authErrorMessage(e));
+  }
 }
 
 // Translate common Firebase Auth error codes into Swahili messages.
@@ -135,6 +161,7 @@ function authErrorMessage(e) {
   const map = {
     'auth/email-already-in-use': 'Barua pepe hii tayari imesajiliwa. Tafadhali ingia.',
     'auth/invalid-email': 'Barua pepe si sahihi.',
+    'auth/missing-email': 'Weka barua pepe kwanza.',
     'auth/weak-password': 'Nenosiri ni hafifu. Tumia angalau herufi 6.',
     'auth/user-not-found': 'Akaunti haipo. Tafadhali jiandikishe kwanza.',
     'auth/wrong-password': 'Barua pepe au nenosiri si sahihi.',
@@ -143,13 +170,11 @@ function authErrorMessage(e) {
     'auth/popup-closed-by-user': 'Umefunga dirisha la Google kabla ya kukamilisha.',
     'auth/network-request-failed': 'Hitilafu ya mtandao. Hakikisha intaneti yako inafanya kazi.',
   };
+
   return map[code] || 'Hitilafu imetokea. Tafadhali jaribu tena.';
 }
 
 /* ---------- Admin PIN (Realtime Database, scoped to the admin's own uid) ---------- */
-// The PIN itself is never stored — only its SHA-256 hash, under
-// users/{uid}/adminPinHash. RTDB rules only allow an account that is
-// ALREADY isAdmin === true to read or write this field for itself.
 
 async function sha256Hex(text) {
   const enc = new TextEncoder().encode(text);
@@ -176,64 +201,72 @@ async function getRequests() {
   const fb = await wpFirebaseReady();
   const snap = await fb.get(fb.ref(fb.db, 'requests'));
   if (!snap.exists()) return [];
+
   const obj = snap.val();
   return Object.keys(obj)
     .map((key) => ({ ...obj[key], _key: key }))
     .sort((a, b) => new Date(b.tarehe) - new Date(a.tarehe));
 }
 
-// Get a single request by its display id (e.g. "WPABC123").
-// Checks the current user's own requests first (works for regular users,
-// since RTDB rules only allow a non-admin to read requests matching their
-// own userId). Falls back to the full admin list if not found there.
+// Get a single request by its display id
 async function getRequestById(id) {
   const mine = await getUserRequests();
   const found = mine.find((r) => r.id === id);
   if (found) return found;
+
   try {
     const all = await getRequests();
     return all.find((r) => r.id === id) || null;
   } catch (e) {
-    // Not an admin and not their own request — no access.
     return null;
   }
 }
 
-// Get current user's requests — reads from userRequests/ for the push-key
-// index, then fetches the live record from requests/ to get the latest
-// admin-updated status/note (admin only writes to requests/, not userRequests/).
+// Get current user's requests
 async function getUserRequests() {
   const fb = await wpFirebaseReady();
   const fbUser = fb.auth.currentUser;
   if (!fbUser) return [];
+
   const snap = await fb.get(fb.ref(fb.db, `userRequests/${fbUser.uid}`));
   if (!snap.exists()) return [];
+
   const obj = snap.val();
   const keys = Object.keys(obj);
-  // Fetch live records from requests/ in parallel to get latest status
+
   const results = await Promise.all(
     keys.map(async (key) => {
       try {
         const liveSnap = await fb.get(fb.ref(fb.db, `requests/${key}`));
         if (liveSnap.exists()) return { ...liveSnap.val(), _key: key };
-      } catch (e) { /* fall back to cached copy */ }
+      } catch (e) {}
       return { ...obj[key], _key: key };
     })
   );
+
   return results
     .filter(Boolean)
     .sort((a, b) => new Date(b.tarehe) - new Date(a.tarehe));
 }
 
-// Submit a new request — writes to Realtime Database
+// Submit a new request
 async function submitRequest(type, details) {
   const user = getUser();
-  if (!user) { window.location.href = 'login.html'; return; }
+  if (!user) {
+    window.location.href = 'login.html';
+    return;
+  }
+
   const fb = await wpFirebaseReady();
   const fbUser = fb.auth.currentUser;
-  if (!fbUser) { window.location.href = 'login.html'; return; }
+  if (!fbUser) {
+    window.location.href = 'login.html';
+    return;
+  }
+
   const newRef = fb.push(fb.ref(fb.db, 'requests'));
   const nowIso = new Date().toISOString();
+
   const newReq = {
     id: genId(),
     userId: fbUser.uid,
@@ -246,21 +279,20 @@ async function submitRequest(type, details) {
     updatedAt: nowIso,
     adminNote: '',
   };
+
   await fb.update(fb.ref(fb.db), {
     [`requests/${newRef.key}`]: newReq,
     [`userRequests/${fbUser.uid}/${newRef.key}`]: newReq,
   });
+
   return { ...newReq, _key: newRef.key };
 }
 
-// Admin: update a request's status + note. Needs the Firebase push key (_key) of the request.
 // Admin: update a request's status + note.
-// Only writes to requests/ — per DB rules, userRequests.$uid .write only
-// allows the owner (auth.uid === $uid), not admin. Authoritative status
-// lives in requests/ which admin CAN write per the rules.
 async function updateRequest(_key, { status, adminNote }) {
   const fb = await wpFirebaseReady();
   const updatedAt = new Date().toISOString();
+
   await fb.update(fb.ref(fb.db), {
     [`requests/${_key}/status`]: status,
     [`requests/${_key}/adminNote`]: adminNote,
@@ -272,7 +304,12 @@ async function updateRequest(_key, { status, adminNote }) {
 
 // Status label in Swahili
 function statusLabel(status) {
-  const map = { pending: 'Inasubiri', approved: 'Imekubaliwa', rejected: 'Imekataliwa', processing: 'Inashughulikiwa' };
+  const map = {
+    pending: 'Inasubiri',
+    approved: 'Imekubaliwa',
+    rejected: 'Imekataliwa',
+    processing: 'Inashughulikiwa'
+  };
   return map[status] || status;
 }
 
@@ -283,27 +320,36 @@ function statusBadge(status) {
 
 // Service type label
 function serviceLabel(type) {
-  const map = { 'lipa-namba': 'Lipa Namba', 'till-uwakala': 'Till ya Uwakala' };
+  const map = {
+    'lipa-namba': 'Lipa Namba',
+    'till-uwakala': 'Till ya Uwakala'
+  };
   return map[type] || type;
 }
 
 /* ---------- Guards ---------- */
 
-// Auth guard — redirect to login if not logged in, or show blocked screen if blocked.
-// Waits for Firebase Auth to finish restoring the session before deciding,
-// so a page refresh doesn't briefly look "logged out".
+// Auth guard
 async function requireAuth() {
   const fbUser = await wpAuthReady();
+
   if (!fbUser) {
     clearUser();
     window.location.href = 'login.html';
     return false;
   }
-  // Check if account is blocked by admin
+
+  // Refresh cached profile from DB
+  try {
+    const profile = await syncUserProfile(fbUser);
+    saveUser(profile);
+  } catch (e) {}
+
+  // Check if account is blocked
   const fb = await wpFirebaseReady();
   const blockedSnap = await fb.get(fb.ref(fb.db, `users/${fbUser.uid}/blocked`));
+
   if (blockedSnap.exists() && blockedSnap.val() === true) {
-    // Show block screen instead of redirecting to keep context
     document.body.innerHTML = `
       <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;background:var(--wakala-surface,#f5f5f5);text-align:center;">
         <div style="width:72px;height:72px;border-radius:20px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
@@ -315,45 +361,49 @@ async function requireAuth() {
       </div>`;
     return false;
   }
+
   return true;
 }
 
-// Admin guard — verifies admin status LIVE against Realtime Database,
-// using the signed-in Firebase Auth user's uid. Never trusts the
-// localStorage cache, since that's fully editable by anyone with devtools.
+// Admin guard
 async function requireAdmin() {
   const fbUser = await wpAuthReady();
+
   if (!fbUser) {
     clearUser();
     window.location.href = 'login.html';
     return false;
   }
+
   const fb = await wpFirebaseReady();
   let isAdmin = false;
+
   try {
     const snap = await fb.get(fb.ref(fb.db, `users/${fbUser.uid}/isAdmin`));
     isAdmin = snap.exists() && snap.val() === true;
   } catch (e) {
     isAdmin = false;
   }
+
   if (!isAdmin) {
     window.location.href = 'login.html';
     return false;
   }
-  // Refresh the local cache now that we've confirmed admin status server-side,
-  // so the rest of the page (which reads getUser() synchronously) is accurate.
+
   const profile = await syncUserProfile(fbUser);
   saveUser(profile);
   return true;
 }
 
-// Logout — signs out of Firebase Auth and clears local session cache
+// Logout
 async function logout() {
   clearUser();
+
   try {
     const fb = await wpFirebaseReady();
     await fb.signOut(fb.auth);
-  } catch (e) { /* ignore — local session is already cleared */ }
+  } catch (e) {}
+
   window.location.href = 'login.html';
 }
 
@@ -373,6 +423,7 @@ async function getUsers() {
   const fb = await wpFirebaseReady();
   const snap = await fb.get(fb.ref(fb.db, 'users'));
   if (!snap.exists()) return [];
+
   const obj = snap.val();
   return Object.keys(obj)
     .map((uid) => ({ uid, ...obj[uid] }))
@@ -380,19 +431,50 @@ async function getUsers() {
 }
 
 // Admin: block or unblock a user by uid
-// Must write directly to the blocked child node — the parent $uid .write
-// rule restricts to auth.uid === $uid, but the blocked child rule allows admin.
 async function setUserBlocked(uid, blocked) {
   const fb = await wpFirebaseReady();
   await fb.set(fb.ref(fb.db, `users/${uid}/blocked`), blocked ? true : false);
 }
 
-// Check if current user is blocked — called on every protected page load
+// Check if current user is blocked
 async function checkBlocked() {
   const fbUser = await wpAuthReady();
   if (!fbUser) return false;
+
   const fb = await wpFirebaseReady();
   const snap = await fb.get(fb.ref(fb.db, `users/${fbUser.uid}/blocked`));
   return snap.exists() && snap.val() === true;
 }
 
+/* ---------- Expose functions to window so HTML pages can call them ---------- */
+window.getUser = getUser;
+window.saveUser = saveUser;
+window.clearUser = clearUser;
+
+window.registerUser = registerUser;
+window.loginUser = loginUser;
+window.loginWithGoogle = loginWithGoogle;
+window.sendPasswordReset = sendPasswordReset;
+
+window.getRequests = getRequests;
+window.getRequestById = getRequestById;
+window.getUserRequests = getUserRequests;
+window.submitRequest = submitRequest;
+window.updateRequest = updateRequest;
+
+window.statusLabel = statusLabel;
+window.statusBadge = statusBadge;
+window.serviceLabel = serviceLabel;
+window.formatDate = formatDate;
+
+window.requireAuth = requireAuth;
+window.requireAdmin = requireAdmin;
+window.logout = logout;
+
+window.getUsers = getUsers;
+window.setUserBlocked = setUserBlocked;
+window.checkBlocked = checkBlocked;
+
+window.sha256Hex = sha256Hex;
+window.getAdminPinHash = getAdminPinHash;
+window.setAdminPinHash = setAdminPinHash;
