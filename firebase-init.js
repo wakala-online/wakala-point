@@ -1,11 +1,16 @@
-/* ===== Wakala Point — Firebase Initialization (Auth + Realtime Database) ===== */
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+/* =========================================================
+   WAKALA POINT — FIREBASE INIT
+   Auth + Realtime Database + Helpers for classic scripts
+   ========================================================= */
+
+import { initializeApp, getApps, getApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import {
   getDatabase,
   ref,
   push,
   set,
   update,
+  remove,
   get,
   child,
   query,
@@ -13,7 +18,9 @@ import {
   equalTo,
   onValue,
   off,
+  serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
 import {
   getAuth,
   GoogleAuthProvider,
@@ -23,8 +30,12 @@ import {
   signOut,
   updateProfile,
   onAuthStateChanged,
+  sendPasswordResetEmail
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
+/* =========================================================
+   FIREBASE CONFIG
+   ========================================================= */
 const firebaseConfig = {
   apiKey: "AIzaSyB36tCsZPPstZvojZLE6srWUVNahdzgvZw",
   authDomain: "wakala-point.firebaseapp.com",
@@ -35,19 +46,43 @@ const firebaseConfig = {
   measurementId: "G-D085CTF9C7"
 };
 
-const app = initializeApp(firebaseConfig);
+/* =========================================================
+   SAFE INIT
+   ========================================================= */
+const app = getApps().length ? getApp() : initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Expose what wakala.js (a plain, non-module script) needs on window,
-// since wakala.js loads as a classic script and this file loads as a module.
+/* Google provider tweaks */
+googleProvider.setCustomParameters({
+  prompt: "select_account"
+});
+
+/* =========================================================
+   READY PROMISE
+   Hii inasaidia pages kusubiri Firebase iwe tayari
+   ========================================================= */
+let _readyResolve;
+const firebaseReadyPromise = new Promise((resolve) => {
+  _readyResolve = resolve;
+});
+
+/* =========================================================
+   GLOBAL EXPOSE
+   Hii ndiyo wakala.js / classic scripts zitaitumia
+   ========================================================= */
 window.__wpFirebase = {
+  app,
   db,
+  auth,
+
+  // database
   ref,
   push,
   set,
   update,
+  remove,
   get,
   child,
   query,
@@ -55,7 +90,9 @@ window.__wpFirebase = {
   equalTo,
   onValue,
   off,
-  auth,
+  serverTimestamp,
+
+  // auth
   googleProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
@@ -63,7 +100,52 @@ window.__wpFirebase = {
   signOut,
   updateProfile,
   onAuthStateChanged,
+  sendPasswordResetEmail,
 };
 
-// Let other scripts know Firebase is ready (wakala.js waits for this).
+/* =========================================================
+   READY HELPER
+   Hii unaweza kuitumia kwenye wakala.js:
+   const fb = await wpFirebaseReady();
+   ========================================================= */
+window.wpFirebaseReady = function () {
+  return firebaseReadyPromise;
+};
+
+/* =========================================================
+   OPTIONAL: AUTH STATE HELPER
+   Kama unataka kupata current user kwa urahisi
+   ========================================================= */
+window.wpGetCurrentUser = function () {
+  return auth.currentUser;
+};
+
+/* =========================================================
+   OPTIONAL: WAIT FOR FIRST AUTH STATE
+   Hii ni nzuri kwa admin/login pages
+   ========================================================= */
+window.wpWaitForAuth = function () {
+  return new Promise((resolve) => {
+    const unsub = onAuthStateChanged(auth, (user) => {
+      unsub();
+      resolve(user || null);
+    });
+  });
+};
+
+/* =========================================================
+   OPTIONAL: DEBUG HELPERS
+   ========================================================= */
+window.wpFirebaseDebug = {
+  get app() { return app; },
+  get db() { return db; },
+  get auth() { return auth; }
+};
+
+/* =========================================================
+   FIRE EVENT + RESOLVE READY
+   ========================================================= */
 window.dispatchEvent(new Event("wp-firebase-ready"));
+_readyResolve(window.__wpFirebase);
+
+console.log("[Wakala Point] Firebase initialized successfully");
