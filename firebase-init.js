@@ -1,4 +1,4 @@
-/* ===== Wakala Point — Firebase Initialization (Auth + Realtime Database) ===== */
+/* ===== WAKALA POINT — Firebase Initialization (Auth + Realtime Database) ===== */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
 import {
   getDatabase,
@@ -14,17 +14,20 @@ import {
   onValue,
   off,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
 import {
   getAuth,
   GoogleAuthProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   updateProfile,
   onAuthStateChanged,
 } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
 
+/* ===== Firebase Project Config ===== */
 const firebaseConfig = {
   apiKey: "AIzaSyB36tCsZPPstZvojZLE6srWUVNahdzgvZw",
   authDomain: "wakala-point.firebaseapp.com",
@@ -35,14 +38,24 @@ const firebaseConfig = {
   measurementId: "G-D085CTF9C7"
 };
 
+/* ===== Initialize Firebase ===== */
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 const auth = getAuth(app);
 const googleProvider = new GoogleAuthProvider();
 
-// Expose what wakala.js (a plain, non-module script) needs on window,
-// since wakala.js loads as a classic script and this file loads as a module.
+/* ===== Optional: Google login always asks account picker ===== */
+googleProvider.setCustomParameters({
+  prompt: "select_account"
+});
+
+/* ===== Expose Firebase helpers to wakala.js =====
+   Kwa sababu firebase-init.js ni module lakini wakala.js ni classic script,
+   tunazitoa kwenye window ili wakala.js iweze kuzitumia.
+*/
 window.__wpFirebase = {
+  // app + db
+  app,
   db,
   ref,
   push,
@@ -55,16 +68,18 @@ window.__wpFirebase = {
   equalTo,
   onValue,
   off,
+
+  // auth
   auth,
   googleProvider,
   signInWithPopup,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  sendPasswordResetEmail,
   signOut,
   updateProfile,
   onAuthStateChanged,
 };
 
-// Let other scripts know Firebase is ready (wakala.js waits for this).
+/* ===== Notify other scripts that Firebase is ready ===== */
 window.dispatchEvent(new Event("wp-firebase-ready"));
-
