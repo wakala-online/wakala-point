@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Akaunti — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Header -->
+  <div class="header is-fixed">
+    <div class="tf-container">
+      <div class="tf-statusbar justify-content-center">
+        <a href="index.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Akaunti Yangu</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+
+      <!-- Profile Card -->
+      <div style="background:linear-gradient(135deg,var(--wakala-primary) 0%,var(--wakala-primary-dark) 100%);border-radius:20px;padding:28px 20px 24px;text-align:center;margin-bottom:16px;box-shadow:var(--wakala-shadow);position:relative;overflow:hidden;">
+        <div style="position:absolute;right:-20px;top:-20px;width:100px;height:100px;border-radius:50%;background:rgba(255,255,255,0.07);"></div>
+        <div style="position:absolute;left:-20px;bottom:-30px;width:80px;height:80px;border-radius:50%;background:rgba(255,255,255,0.05);"></div>
+        <!-- Avatar -->
+        <div style="width:80px;height:80px;background:rgba(255,255,255,0.2);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 14px;border:3px solid rgba(255,255,255,0.35);">
+          <i class="icon-user-fill" style="font-size:38px;color:#fff;"></i>
+        </div>
+        <h3 id="p-name" style="font-size:19px;font-weight:800;margin:0 0 4px;color:#fff;"></h3>
+        <p id="p-phone" style="font-size:13px;color:rgba(255,255,255,0.75);margin:0 0 4px;font-weight:500;"></p>
+        <p id="p-mkoa" style="font-size:12px;color:rgba(255,255,255,0.6);margin:0;display:flex;align-items:center;justify-content:center;gap:4px;"></p>
+      </div>
+
+      <!-- Stats Row -->
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-bottom:20px;">
+        <div style="background:#fff;border-radius:14px;padding:14px 10px;text-align:center;box-shadow:var(--wakala-shadow);">
+          <h3 id="stat-total" style="font-size:24px;font-weight:800;color:var(--wakala-primary);margin:0 0 4px;">0</h3>
+          <p style="font-size:10px;color:var(--wakala-text-muted);margin:0;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Yote</p>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px 10px;text-align:center;box-shadow:var(--wakala-shadow);">
+          <h3 id="stat-approved" style="font-size:24px;font-weight:800;color:var(--wakala-accent);margin:0 0 4px;">0</h3>
+          <p style="font-size:10px;color:var(--wakala-text-muted);margin:0;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Idhinishwa</p>
+        </div>
+        <div style="background:#fff;border-radius:14px;padding:14px 10px;text-align:center;box-shadow:var(--wakala-shadow);">
+          <h3 id="stat-pending" style="font-size:24px;font-weight:800;color:#1D5FA8;margin:0 0 4px;">0</h3>
+          <p style="font-size:10px;color:var(--wakala-text-muted);margin:0;font-weight:600;text-transform:uppercase;letter-spacing:0.3px;">Inasubiri</p>
+        </div>
+      </div>
+
+      <!-- Menu -->
+      <div style="background:#fff;border-radius:16px;overflow:hidden;box-shadow:var(--wakala-shadow);margin-bottom:20px;">
+
+        <a href="maombi.html" class="profile-menu-item">
+          <div class="pm-icon-wrap" style="background:var(--wakala-primary-light);">
+            <i class="icon-request" style="font-size:20px;color:var(--wakala-primary);"></i>
+          </div>
+          <p class="pm-label">Maombi Yangu</p>
+          <i class="icon-right pm-chevron"></i>
+        </a>
+
+        <a href="arifa.html" class="profile-menu-item">
+          <div class="pm-icon-wrap" style="background:#FDF1E2;">
+            <i class="icon-noti" style="font-size:20px;color:#95591A;"></i>
+          </div>
+          <p class="pm-label">Arifa</p>
+          <i class="icon-right pm-chevron"></i>
+        </a>
+
+        <a href="msaada.html" class="profile-menu-item">
+          <div class="pm-icon-wrap" style="background:#E7F0FB;">
+            <i class="icon-info" style="font-size:20px;color:#1D5FA8;"></i>
+          </div>
+          <p class="pm-label">Msaada &amp; Maswali</p>
+          <i class="icon-right pm-chevron"></i>
+        </a>
+
+        <a href="#" onclick="doLogout()" class="profile-menu-item danger">
+          <div class="pm-icon-wrap" style="background:#FBE7E7;">
+            <i class="icon-log-in1" style="font-size:20px;color:var(--wakala-red);"></i>
+          </div>
+          <p class="pm-label">Toka (Logout)</p>
+        </a>
+
+      </div>
+
+      <p style="text-align:center;font-size:11px;color:var(--wakala-text-muted);font-weight:500;">Wakala Point v1.0 &middot; &copy; 2026</p>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-navigation-bar">
+    <a href="index.html" class="item"><i class="icon-home"></i><p>Nyumbani</p></a>
+    <a href="maombi.html" class="item"><i class="icon-request"></i><p>Maombi</p></a>
+    <a href="arifa.html" class="item"><i class="icon-noti"></i><p>Arifa</p></a>
+    <a href="profile.html" class="item active"><i class="icon-user-outline"></i><p>Akaunti</p></a>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      if (!requireAuth()) return;
+      const user = getUser();
+      document.getElementById('p-name').textContent = user.jina;
+      document.getElementById('p-phone').textContent = user.simu;
+      const mkoa = document.getElementById('p-mkoa');
+      if (user.mkoa) {
+        mkoa.innerHTML = `<i class="icon-location" style="font-size:13px;"></i>${user.mkoa}`;
+      }
+      const reqs = await getUserRequests();
+      document.getElementById('stat-total').textContent = reqs.length;
+      document.getElementById('stat-approved').textContent = reqs.filter(r => r.status === 'approved').length;
+      document.getElementById('stat-pending').textContent = reqs.filter(r => r.status === 'pending').length;
+    });
+    function doLogout() {
+      if (confirm('Una uhakika unataka kutoka?')) {
+        logout();
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Omba Till ya Uwakala — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="header is-fixed">
+    <div class="tf-container">
+      <div class="tf-statusbar justify-content-center">
+        <a href="index.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Omba Till ya Uwakala</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+
+      <div class="alert-info-box" style="display:flex;gap:8px;align-items:flex-start;">
+        <i class="icon-app-store" style="flex-shrink:0;margin-top:2px;"></i>
+        <span><strong>Till ya Uwakala</strong> inakuwezesha kutoa na kupokea fedha kwa wateja, na kupata mapato kutoka kwa kampuni za simu.</span>
+      </div>
+
+      <div style="background:#fff;border-radius:16px;padding:20px;box-shadow:var(--wakala-shadow);">
+        <p class="section-title" style="margin-bottom:16px;display:flex;align-items:center;gap:6px;"><i class="icon-user-outline"></i> Taarifa za Mwombaji</p>
+
+        <div class="group-input">
+          <label>Jina Kamili *</label>
+          <input type="text" id="f-jina" placeholder="Kama unavyoonekana kwenye kitambulisho">
+        </div>
+        <div class="group-input">
+          <label>Namba ya Simu *</label>
+          <input type="tel" id="f-simu" placeholder="+255 7XX XXX XXX">
+        </div>
+        <div class="group-input">
+          <label>Umri *</label>
+          <input type="number" id="f-umri" placeholder="Lazima uwe na miaka 18+" min="18" max="80">
+        </div>
+        <div class="group-input">
+          <label>Aina ya Kitambulisho *</label>
+          <select id="f-id-type">
+            <option value="">-- Chagua --</option>
+            <option>NIDA (Kitambulisho cha Taifa)</option>
+            <option>Pasi (Passport)</option>
+            <option>Leseni ya Dereva</option>
+            <option>Voter ID</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Namba ya Kitambulisho *</label>
+          <input type="text" id="f-id-no" placeholder="Namba ya kitambulisho">
+        </div>
+
+        <hr class="divider">
+        <p class="section-title" style="margin-bottom:16px;display:flex;align-items:center;gap:6px;"><i class="icon-wifi"></i> Taarifa za Mtandao</p>
+
+        <div class="group-input">
+          <label>Mtandao wa Simu Unaohitajika *</label>
+          <select id="f-mtandao">
+            <option value="">-- Chagua --</option>
+            <option>M-Pesa (Vodacom)</option>
+            <option>Tigopesa (Tigo)</option>
+            <option>Airtel Money</option>
+            <option>HaloPesa (Halotel)</option>
+            <option>T-Pesa (TTCL)</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Aina ya Wakala *</label>
+          <select id="f-aina-wakala">
+            <option value="">-- Chagua --</option>
+            <option>Wakala wa fedha (Cash In / Cash Out)</option>
+            <option>Wakala wa malipo ya bili</option>
+            <option>Wakala kamili (huduma zote)</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Je, umewahi kuwa wakala hapo awali? *</label>
+          <select id="f-wakala-history">
+            <option value="">-- Chagua --</option>
+            <option value="hapana">Hapana, ni mara yangu ya kwanza</option>
+            <option value="ndiyo">Ndiyo, nilikuwa wakala</option>
+            <option value="ndiyo-sasa">Ndiyo, bado niko</option>
+          </select>
+        </div>
+        <div class="group-input" id="prev-wakala-wrap" style="display:none;">
+          <label>Mtandao wa Awali</label>
+          <input type="text" id="f-prev-mtandao" placeholder="Mfano: Airtel Money">
+        </div>
+
+        <hr class="divider">
+        <p class="section-title" style="margin-bottom:16px;display:flex;align-items:center;gap:6px;"><i class="icon-location"></i> Eneo la Wakala</p>
+
+        <div class="group-input">
+          <label>Mkoa *</label>
+          <select id="f-mkoa">
+            <option value="">-- Chagua Mkoa --</option>
+            <option>Dar es Salaam</option><option>Mwanza</option><option>Arusha</option>
+            <option>Dodoma</option><option>Mbeya</option><option>Morogoro</option>
+            <option>Tanga</option><option>Zanzibar</option><option>Kigoma</option>
+            <option>Tabora</option><option>Lindi</option><option>Mtwara</option>
+            <option>Singida</option><option>Shinyanga</option><option>Kagera</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Wilaya *</label>
+          <input type="text" id="f-wilaya" placeholder="Mfano: Kinondoni">
+        </div>
+        <div class="group-input">
+          <label>Mtaa / Kata *</label>
+          <input type="text" id="f-kata" placeholder="Mfano: Sinza">
+        </div>
+        <div class="group-input">
+          <label>Umbali hadi Wakala wa Karibu *</label>
+          <select id="f-umbali">
+            <option value="">-- Chagua --</option>
+            <option>Chini ya 500m</option>
+            <option>500m – 1km</option>
+            <option>1km – 2km</option>
+            <option>2km – 5km</option>
+            <option>Zaidi ya 5km</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Aina ya Eneo</label>
+          <select id="f-eneo">
+            <option value="">-- Chagua --</option>
+            <option>Mjini (Urban)</option>
+            <option>Vijijini (Rural)</option>
+            <option>Pembezoni (Peri-urban)</option>
+            <option>Sokoni</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+        <p class="section-title" style="margin-bottom:16px;display:flex;align-items:center;gap:6px;"><i class="icon-wallet1"></i> Uwezo wa Mtaji</p>
+
+        <div class="group-input">
+          <label>Mtaji Unaokusudia Kuanza Nao *</label>
+          <select id="f-mtaji">
+            <option value="">-- Chagua --</option>
+            <option>Chini ya TZS 500,000</option>
+            <option>TZS 500,000 – 1,000,000</option>
+            <option>TZS 1,000,000 – 2,000,000</option>
+            <option>TZS 2,000,000 – 5,000,000</option>
+            <option>Zaidi ya TZS 5,000,000</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Una Simu ya Kuendeshea Wakala? *</label>
+          <select id="f-simu-available">
+            <option value="">-- Chagua --</option>
+            <option>Ndiyo, nina simu</option>
+            <option>Hapana, nahitaji msaada</option>
+            <option>Nina simu lakini inahitaji update</option>
+          </select>
+        </div>
+
+        <hr class="divider">
+        <p class="section-title" style="margin-bottom:16px;display:flex;align-items:center;gap:6px;"><i class="icon-home2"></i> Sehemu ya Wakala</p>
+
+        <div class="group-input">
+          <label>Una Mahali (Duka/Ofisi)? *</label>
+          <select id="f-mahali">
+            <option value="">-- Chagua --</option>
+            <option>Ndiyo, nina duka/ofisi</option>
+            <option>Nahitaji msaada kupata mahali</option>
+            <option>Nitafanya wakala wa rununu (mobile)</option>
+          </select>
+        </div>
+        <div class="group-input">
+          <label>Maelezo ya Eneo la Biashara</label>
+          <textarea id="f-eneo-maelezo" rows="2" style="resize:none;font-size:14px;" placeholder="Mfano: Duka langu liko kando ya barabara kuu, karibu na shule ya msingi..."></textarea>
+        </div>
+
+        <hr class="divider">
+        <div class="group-input">
+          <label>Maelezo ya Ziada (hiari)</label>
+          <textarea id="f-notes" rows="3" style="resize:none;font-size:14px;" placeholder="Yoyote unayotaka tuijue..."></textarea>
+        </div>
+
+        <p id="err-msg" style="color:var(--wakala-red);font-size:13px;display:none;margin-bottom:12px;"></p>
+
+        <button class="tf-btn accent large" style="display:flex;align-items:center;justify-content:center;gap:8px;" onclick="submitTill()"><i class="icon-send"></i> Tuma Ombi</button>
+      </div>
+
+      <div style="height:20px;"></div>
+    </div>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      requireAuth();
+      document.getElementById('f-wakala-history').addEventListener('change', function () {
+        const wrap = document.getElementById('prev-wakala-wrap');
+        wrap.style.display = (this.value === 'ndiyo' || this.value === 'ndiyo-sasa') ? 'block' : 'none';
+      });
+    });
+
+    async function submitTill() {
+      const f = (id) => document.getElementById(id).value.trim();
+      const err = document.getElementById('err-msg');
+      const btn = document.querySelector('button.tf-btn.accent.large');
+      err.style.display = 'none';
+      const required = [
+        ['f-jina','Jina kamili'], ['f-simu','Namba ya simu'], ['f-umri','Umri'],
+        ['f-id-type','Aina ya kitambulisho'], ['f-id-no','Namba ya kitambulisho'],
+        ['f-mtandao','Mtandao'], ['f-aina-wakala','Aina ya wakala'],
+        ['f-wakala-history','Historia ya wakala'], ['f-mkoa','Mkoa'],
+        ['f-wilaya','Wilaya'], ['f-kata','Mtaa/Kata'], ['f-umbali','Umbali'],
+        ['f-mtaji','Mtaji'], ['f-simu-available','Hali ya simu'], ['f-mahali','Sehemu ya biashara'],
+      ];
+      for (const [id, label] of required) {
+        if (!f(id)) { err.textContent = `Tafadhali jaza: ${label}`; err.style.display='block'; document.getElementById(id).focus(); return; }
+      }
+      if (parseInt(f('f-umri')) < 18) { err.textContent = 'Lazima uwe na miaka 18+.'; err.style.display='block'; return; }
+      const details = {
+        jina: f('f-jina'), simu: f('f-simu'), umri: f('f-umri'),
+        aina_id: f('f-id-type'), namba_id: f('f-id-no'),
+        mtandao: f('f-mtandao'), aina_wakala: f('f-aina-wakala'),
+        historia_wakala: f('f-wakala-history'), mtandao_wa_awali: f('f-prev-mtandao'),
+        mkoa: f('f-mkoa'), wilaya: f('f-wilaya'), kata: f('f-kata'),
+        umbali_wakala: f('f-umbali'), eneo: f('f-eneo'),
+        mtaji: f('f-mtaji'), hali_simu: f('f-simu-available'),
+        mahali: f('f-mahali'), eneo_maelezo: f('f-eneo-maelezo'),
+        maelezo: f('f-notes'),
+      };
+      if (btn) { btn.disabled = true; btn.textContent = 'Inatuma...'; }
+      try {
+        const req = await submitRequest('till-uwakala', details);
+        window.location.href = `ombi-detail.html?id=${req.id}&new=1`;
+      } catch (e) {
+        err.textContent = 'Hitilafu imetokea. Tafadhali jaribu tena.';
+        err.style.display = 'block';
+        if (btn) { btn.disabled = false; btn.innerHTML = '<i class="icon-send"></i> Tuma Ombi'; }
+      }
+    }
+  </script>
+</body>
+</html>

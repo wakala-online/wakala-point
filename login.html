@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Ingia — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body>
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="mt-7 login-section">
+    <div class="tf-container">
+      <!-- Logo -->
+      <div style="text-align:center; margin-bottom:32px;">
+        <div style="width:102px;height:102px;background: none;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+          <img src="logo.png">
+        </div>
+        <h1 style="font-size:24px;font-weight:800;color:var(--wakala-primary);margin:0;">Wakala Point</h1>
+        <p style="font-size:13px;color:var(--wakala-text-muted);margin:4px 0 0;">Huduma za Wakala kwa Urahisi</p>
+      </div>
+
+      <div class="group-input">
+        <label>Barua Pepe</label>
+        <input type="email" id="inp-email" placeholder="mfano@gmail.com">
+      </div>
+      <div class="group-input auth-pass-input last">
+        <label>Nenosiri</label>
+        <input type="password" id="inp-pass" class="password-input" placeholder="Weka nenosiri">
+        <a class="icon-eye password-addon" id="password-addon"></a>
+      </div>
+
+      <p id="err-msg" style="color:var(--wakala-red);font-size:13px;display:none;margin-bottom:12px;"></p>
+
+      <button class="tf-btn accent large" onclick="doLogin()">Ingia</button>
+
+      <div class="auth-line">au</div>
+
+      <button class="tf-btn outline large" style="width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;" onclick="doGoogleLogin()">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0;">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.97H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+        </svg>
+        Ingia na Google
+      </button>
+
+      <div style="background:var(--wakala-primary-light);border-radius:14px;padding:16px;margin-bottom:16px;">
+        <p style="font-size:13px;font-weight:600;color:var(--wakala-primary);margin:0 0 8px;">Demo ya Haraka</p>
+        <button class="tf-btn outline" style="margin-bottom:8px;width:100%;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="demoLogin('user')"><i class="icon-user-outline"></i> Ingia kama Demo</button>
+        
+      </div>
+
+      <p class="mb-9 fw-3 text-center">Bado huna akaunti? <a href="register.html" class="auth-link-rg">Jiandikishe</a></p>
+    </div>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="password-addon.js"></script>
+  <script src="main.js"></script>
+  <script>
+    async function doLogin() {
+      const email = document.getElementById('inp-email').value.trim();
+      const pass = document.getElementById('inp-pass').value;
+      const err = document.getElementById('err-msg');
+      const btn = document.querySelector('button.tf-btn.accent.large');
+      err.style.display = 'none';
+      if (!email || !pass) { err.textContent = 'Tafadhali jaza barua pepe na nenosiri.'; err.style.display='block'; return; }
+      if (btn) { btn.disabled = true; btn.textContent = 'Inaingia...'; }
+      try {
+        const found = await loginUser(email, pass);
+        saveUser(found);
+        window.location.href = found.isAdmin ? 'admin.html' : 'index.html';
+      } catch (e) {
+        err.textContent = e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.';
+        err.style.display = 'block';
+        if (btn) { btn.disabled = false; btn.textContent = 'Ingia'; }
+      }
+    }
+    async function doGoogleLogin() {
+      const err = document.getElementById('err-msg');
+      err.style.display = 'none';
+      try {
+        const found = await loginWithGoogle();
+        saveUser(found);
+        window.location.href = found.isAdmin ? 'admin.html' : 'index.html';
+      } catch (e) {
+        err.textContent = e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.';
+        err.style.display = 'block';
+      }
+    }
+    function demoLogin(role) {
+      if (role === 'admin') {
+        const admin = { id: 'admin001', jina: 'Admin WakalaPoint', simu: '+255700000001', isAdmin: true };
+        saveUser(admin);
+        window.location.href = 'admin.html';
+      } else {
+        const user = { id: 'demo_' + Date.now(), jina: 'Mteja Demo', simu: '+255712345000', isAdmin: false };
+        saveUser(user);
+        window.location.href = 'index.html';
+      }
+    }
+  </script>
+</body>
+</html>

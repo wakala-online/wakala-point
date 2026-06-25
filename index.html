@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Wakala Point — Nyumbani</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+    <link rel="stylesheet" href="remixicon.min.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <!-- Top Header -->
+  <div class="header is-fixed">
+    <div class="tf-container" style="width:100%;">
+      <div class="tf-statusbar header-row d-flex align-items-center">
+        <!-- Hamburger menu -->
+        <button class="header-menu-btn" onclick="openSidebar()" aria-label="Menyu">
+          <i class="ri-menu-2-line"></i>
+        </button>
+        <!-- User info -->
+        <div class="hdr-flex-text" style="padding-left:12px;">
+          <p style="font-size:10px;color:rgba(255,255,255,0.7);font-weight:500;">Karibu,</p>
+          <h4 id="user-name" style="font-size:15px;font-weight:800;">Mteja</h4>
+        </div>
+        <!-- Right actions -->
+        <div class="hdr-actions">
+          <a href="arifa.html" style="position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.18);border-radius:10px;flex-shrink:0;">
+            <i class="icon-noti" style="color:#fff;font-size:20px;"></i>
+            <span id="notif-count" class="notif-dot" style="position:absolute;top:6px;right:6px;display:none;"></span>
+          </a>
+          <a href="profile.html" style="display:flex;align-items:center;justify-content:center;width:36px;height:36px;background:rgba(255,255,255,0.18);border-radius:10px;flex-shrink:0;">
+            <i class="icon-user-outline" style="color:#fff;font-size:20px;"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+
+      <!-- Hero Card -->
+      <div class="hero-card">
+        <p style="font-size:12px;opacity:0.8;margin:0 0 6px;font-weight:500;">Maombi Yangu</p>
+        <h2 id="req-count" style="color: white">0 Maombi</h2>
+        <p>Fuatilia hali ya maombi yako yote hapa</p>
+        <a href="maombi.html" style="display:inline-flex;align-items:center;gap:6px;margin-top:14px;background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:700;text-decoration:none;">Angalia Maombi <i class="icon-right" style="font-size:12px;"></i></a>
+      </div>
+
+      <!-- Services -->
+      <p class="section-title">Huduma za Wakala</p>
+
+      <a href="lipa-namba.html" class="service-card">
+        <div class="service-icon green">
+          <i class="icon-mobile" style="font-size:26px;color:var(--wakala-primary);"></i>
+        </div>
+        <div class="service-info">
+          <h4>Omba Lipa Namba</h4>
+          <p>Pata namba ya malipo kwa biashara yako</p>
+        </div>
+        <span class="chevron"><i class="icon-right"></i></span>
+      </a>
+
+      <a href="till-uwakala.html" class="service-card">
+        <div class="service-icon yellow">
+          <i class="icon-bankgroup" style="font-size:26px;color:#b88000;"></i>
+        </div>
+        <div class="service-info">
+          <h4>Omba Till ya Uwakala</h4>
+          <p>Fungua akaunti ya wakala wa fedha</p>
+        </div>
+        <span class="chevron"><i class="icon-right"></i></span>
+      </a>
+
+      <!-- Info -->
+      <p class="section-title" style="margin-top:8px;">Habari Muhimu</p>
+      <div class="alert-info-box">
+        <i class="icon-info" style="color:var(--wakala-primary);margin-right:6px;font-size:16px;vertical-align:middle;"></i><strong>Jinsi ya kutuma ombi:</strong> Chagua huduma unayoitaka, jaza fomu, na tunshughulikie ndani ya siku 1–3 za kazi.
+      </div>
+      <div class="alert-info-box" style="background:var(--wakala-accent-light);border-left-color:var(--wakala-accent);color:#7A5A00;">
+        <i class="icon-calendar" style="color:#b88000;margin-right:6px;font-size:16px;vertical-align:middle;"></i><strong>Muda wa kufanya kazi:</strong> Jumatatu – Ijumaa, saa 3:00 – 11:00 jioni.
+      </div>
+
+      <!-- Recent Requests -->
+      <div style="display:flex;justify-content:space-between;align-items:center;margin:20px 0 12px;">
+        <p class="section-title" style="margin:0;">Maombi ya Hivi Karibuni</p>
+        <a href="maombi.html" style="font-size:12px;color:var(--wakala-primary);font-weight:700;display:flex;align-items:center;gap:3px;">Yote <i class="icon-right" style="font-size:11px;"></i></a>
+      </div>
+      <div id="recent-list">
+        <div class="empty-state">
+          <div class="empty-icon"><i class="icon-request" style="font-size:48px;color:var(--wakala-text-muted);opacity:0.5;"></i></div>
+          <h4>Hakuna Maombi Bado</h4>
+          <p>Bonyeza huduma hapo juu kuanza</p>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-navigation-bar">
+    <a href="index.html" class="item active">
+      <i class="icon-home"></i><p>Nyumbani</p>
+    </a>
+    <a href="maombi.html" class="item">
+      <i class="icon-request"></i><p>Maombi</p>
+    </a>
+    <a href="arifa.html" class="item">
+      <i class="icon-noti"></i><p>Arifa</p>
+    </a>
+    <a href="profile.html" class="item">
+      <i class="icon-user-outline"></i><p>Akaunti</p>
+    </a>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      if (!(await requireAuth())) return;
+      const user = getUser();
+      document.getElementById('user-name').textContent = user.jina;
+      // Update sidebar name
+      const sbName = document.getElementById('sb-name');
+      const sbPhone = document.getElementById('sb-phone');
+      if (sbName) sbName.textContent = user.jina;
+      if (sbPhone) sbPhone.textContent = user.simu || '';
+
+      const myReqs = await getUserRequests();
+      document.getElementById('req-count').textContent = myReqs.length + ' Maombi';
+
+      const recentEl = document.getElementById('recent-list');
+      if (myReqs.length === 0) return;
+      const recent = myReqs.slice(0, 2);
+      recentEl.innerHTML = recent.map(r => `
+        <a href="ombi-detail.html?id=${r.id}" class="request-item">
+          <div class="req-header">
+            <span class="req-type">${serviceLabel(r.type)}</span>
+            ${statusBadge(r.status)}
+          </div>
+          <p class="req-name">${r.details.jina || user.jina}</p>
+          <p class="req-sub">${r.id} · ${formatDate(r.tarehe)}</p>
+        </a>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

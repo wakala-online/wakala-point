@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Arifa — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="header is-fixed">
+    <div class="tf-container" style="width:100%;position:relative;">
+      <div class="tf-statusbar justify-content-center">
+        <a href="index.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Arifa</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+      <div id="arifa-list"></div>
+    </div>
+  </div>
+
+  <div class="bottom-navigation-bar">
+    <a href="index.html" class="item"><i class="icon-home"></i><p>Nyumbani</p></a>
+    <a href="maombi.html" class="item"><i class="icon-request"></i><p>Maombi</p></a>
+    <a href="arifa.html" class="item active"><i class="icon-noti"></i><p>Arifa</p></a>
+    <a href="profile.html" class="item"><i class="icon-user-outline"></i><p>Akaunti</p></a>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      if (!requireAuth()) return;
+      const el = document.getElementById('arifa-list');
+      el.innerHTML = '<div class="empty-state"><p>Inapakia...</p></div>';
+      const reqs = await getUserRequests();
+      const arifa = [];
+      reqs.forEach(r => {
+        if (r.status === 'approved') {
+          arifa.push({ icon: 'icon-checkmark', color: 'var(--wakala-success)', bg: 'var(--wakala-success-light)', title: 'Ombi Limekubaliwa!', body: `Ombi lako la ${serviceLabel(r.type)} (${r.id}) limeidhinishwa.`, tarehe: r.updatedAt, id: r.id });
+        } else if (r.status === 'rejected') {
+          arifa.push({ icon: 'icon-clear', color: 'var(--wakala-red)', bg: '#FBE7E7', title: 'Ombi Limekataliwa', body: `Ombi lako la ${serviceLabel(r.type)} (${r.id}) limekataliwa. ${r.adminNote || ''}`, tarehe: r.updatedAt, id: r.id });
+        } else if (r.status === 'processing') {
+          arifa.push({ icon: 'icon-up', color: '#1D5FA8', bg: '#E7F0FB', title: 'Ombi Linashughulikiwa', body: `Ombi lako la ${serviceLabel(r.type)} (${r.id}) liko katika mchakato.`, tarehe: r.updatedAt, id: r.id });
+        } else {
+          arifa.push({ icon: 'icon-noti', color: 'var(--wakala-accent)', bg: 'var(--wakala-accent-light)', title: 'Ombi Limepokelewa', body: `Ombi lako la ${serviceLabel(r.type)} (${r.id}) limepokelewa.`, tarehe: r.tarehe, id: r.id });
+        }
+      });
+      if (arifa.length === 0) {
+        el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="icon-noti" style="font-size:48px;color:var(--wakala-text-muted);opacity:0.5;"></i></div><h4>Hakuna Arifa</h4><p>Arifa zitaonekana hapa baada ya kutuma maombi</p></div>`;
+        return;
+      }
+      arifa.sort((a, b) => new Date(b.tarehe) - new Date(a.tarehe));
+      el.innerHTML = arifa.map(a => `
+        <a href="ombi-detail.html?id=${a.id}" style="display:flex;gap:14px;background:#fff;border-radius:14px;padding:16px;margin-bottom:10px;box-shadow:var(--wakala-shadow);text-decoration:none;color:inherit;border:1px solid var(--wakala-border);">
+          <div style="width:40px;height:40px;border-radius:10px;background:${a.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+            <i class="${a.icon}" style="font-size:18px;color:${a.color};"></i>
+          </div>
+          <div>
+            <p style="font-size:14px;font-weight:700;margin:0 0 4px;color:var(--wakala-text);">${a.title}</p>
+            <p style="font-size:12px;color:var(--wakala-text-muted);margin:0 0 4px;">${a.body}</p>
+            <p style="font-size:11px;color:var(--wakala-text-muted);margin:0;">${formatDate(a.tarehe)}</p>
+          </div>
+        </a>
+      `).join('');
+    });
+  </script>
+</body>
+</html>

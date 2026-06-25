@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Maelezo ya Ombi — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="header is-fixed">
+    <div class="tf-container">
+      <div class="tf-statusbar justify-content-center">
+        <a href="maombi.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Maelezo ya Ombi</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+      <div id="content"></div>
+    </div>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      requireAuth();
+      document.getElementById('content').innerHTML = '<p>Inapakia...</p>';
+      const params = new URLSearchParams(window.location.search);
+      const id = params.get('id');
+      const isNew = params.get('new') === '1';
+      const req = await getRequestById(id);
+      if (!req) { document.getElementById('content').innerHTML = '<p>Ombi halipatikani.</p>'; return; }
+
+      // Status progress mapping
+      const steps = [
+        { key: 'submitted', label: 'Ombi Limetumwa', desc: 'Ombi lako limepokelewa' },
+        { key: 'processing', label: 'Linashughulikiwa', desc: 'Timu yetu inakagua ombi lako' },
+        { key: 'approved', label: 'Limekubaliwa', desc: 'Ombi lako limeidhinishwa' },
+        { key: 'completed', label: 'Imekamilika', desc: 'Huduma imetolewa kikamilifu' },
+      ];
+      const statusProgress = { pending: 1, processing: 2, approved: 3, rejected: 1, completed: 4 };
+      const progress = statusProgress[req.status] || 1;
+
+      let stepsHTML = '';
+      steps.forEach((step, i) => {
+        const stepNum = i + 1;
+        const isDone = stepNum < progress;
+        const isActive = stepNum === progress && req.status !== 'rejected';
+        const dotClass = isDone ? 'done' : (isActive ? 'active' : '');
+        const lineClass = isDone ? 'done' : '';
+        const icon = isDone ? '<i class="icon-checkmark"></i>' : stepNum;
+        const connector = i < steps.length - 1 ? `<div class="step-connector ${lineClass}"></div>` : '';
+        stepsHTML += `
+          <div class="tracker-step">
+            <div class="step-line-wrap">
+              <div class="step-dot ${dotClass}">${icon}</div>
+              ${connector}
+            </div>
+            <div class="step-info">
+              <h5>${step.label}</h5>
+              <p>${step.desc}</p>
+            </div>
+          </div>
+        `;
+      });
+
+      // Build details rows
+      const dMap = {
+        jina: 'Jina Kamili', simu: 'Namba ya Simu', simu2: 'Simu ya Pili',
+        aina_id: 'Aina ya Kitambulisho', namba_id: 'Namba ya Kitambulisho',
+        jina_biashara: 'Jina la Biashara', aina_biashara: 'Aina ya Biashara',
+        namba_ya_biashara: 'Namba ya Usajili', mtandao: 'Mtandao wa Simu',
+        mkoa: 'Mkoa', wilaya: 'Wilaya', kata: 'Mtaa/Kata',
+        aina_wakala: 'Aina ya Wakala', umbali_wakala: 'Umbali hadi Wakala',
+        mtaji: 'Mtaji', mahali: 'Sehemu ya Biashara', maelezo: 'Maelezo Zaidi',
+      };
+      let detailRows = '';
+      for (const [key, label] of Object.entries(dMap)) {
+        if (req.details[key]) {
+          detailRows += `
+            <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--wakala-border);">
+              <span style="font-size:13px;color:var(--wakala-text-muted);">${label}</span>
+              <span style="font-size:13px;font-weight:600;text-align:right;max-width:60%;">${req.details[key]}</span>
+            </div>
+          `;
+        }
+      }
+
+      const newBanner = isNew ? `
+        <div style="background:var(--wakala-primary-light);border-radius:14px;padding:16px;margin-bottom:16px;border:1.5px solid var(--wakala-primary);text-align:center;">
+          <div style="width:48px;height:48px;border-radius:50%;background:var(--wakala-success-light);display:flex;align-items:center;justify-content:center;margin:0 auto 10px;">
+            <i class="icon-checkmark" style="font-size:22px;color:var(--wakala-success);"></i>
+          </div>
+          <h4 style="color:var(--wakala-primary);margin:0 0 4px;">Ombi Limetumwa!</h4>
+          <p style="font-size:13px;color:var(--wakala-primary-dark);margin:0;">Tutakuwasiliana nawe ndani ya siku 1–3 za kazi.</p>
+        </div>
+      ` : '';
+
+      const rejectedNote = req.status === 'rejected' ? `
+        <div style="background:#FBE7E7;border-radius:12px;padding:14px;margin-bottom:16px;border-left:4px solid var(--wakala-red);">
+          <p style="font-size:13px;font-weight:700;color:var(--wakala-red);margin:0 0 4px;display:flex;align-items:center;gap:6px;"><i class="icon-clear"></i> Ombi Limekataliwa</p>
+          <p style="font-size:13px;color:#7A2020;margin:0;">${req.adminNote || 'Tafadhali wasiliana na msaada wetu.'}</p>
+        </div>
+      ` : '';
+
+      const adminNoteBox = req.adminNote && req.status !== 'rejected' ? `
+        <div class="alert-info-box" style="display:flex;gap:8px;align-items:flex-start;"><i class="icon-info" style="flex-shrink:0;margin-top:2px;"></i><span><strong>Ujumbe wa Admin:</strong> ${req.adminNote}</span></div>
+      ` : '';
+
+      document.getElementById('content').innerHTML = `
+        ${newBanner}
+        <!-- Summary Card -->
+        <div style="background:var(--wakala-primary);border-radius:16px;padding:20px;color:#fff;margin-bottom:16px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <p style="font-size:12px;opacity:0.8;margin:0 0 4px;">Aina ya Huduma</p>
+              <h3 style="font-size:18px;font-weight:800;margin:0;">${serviceLabel(req.type)}</h3>
+            </div>
+            ${statusBadge(req.status)}
+          </div>
+          <div style="margin-top:16px;display:flex;gap:24px;">
+            <div>
+              <p style="font-size:11px;opacity:0.7;margin:0;">Namba ya Ombi</p>
+              <p style="font-size:13px;font-weight:700;margin:0;">${req.id}</p>
+            </div>
+            <div>
+              <p style="font-size:11px;opacity:0.7;margin:0;">Tarehe</p>
+              <p style="font-size:13px;font-weight:700;margin:0;">${formatDate(req.tarehe)}</p>
+            </div>
+          </div>
+        </div>
+
+        ${rejectedNote}
+        ${adminNoteBox}
+
+        <!-- Tracker -->
+        <div style="background:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:var(--wakala-shadow);">
+          <p class="section-title" style="display:flex;align-items:center;gap:6px;"><i class="icon-bar-chart-1"></i> Hali ya Ombi</p>
+          <div class="tracker-steps">${stepsHTML}</div>
+        </div>
+
+        <!-- Details -->
+        <div style="background:#fff;border-radius:16px;padding:20px;margin-bottom:16px;box-shadow:var(--wakala-shadow);">
+          <p class="section-title" style="display:flex;align-items:center;gap:6px;"><i class="icon-request"></i> Maelezo ya Ombi</p>
+          ${detailRows}
+        </div>
+
+        <!-- Help -->
+        <div class="alert-info-box" style="display:flex;gap:8px;align-items:flex-start;">
+          <i class="icon-phone" style="flex-shrink:0;margin-top:2px;"></i>
+          <span><strong>Msaada?</strong> Piga simu: <a href="tel:+255800000000" style="color:var(--wakala-primary);font-weight:700;">0800 000 000</a> au WhatsApp: <a href="https://wa.me/255700000000" style="color:var(--wakala-primary);font-weight:700;">+255 700 000 000</a></span>
+        </div>
+
+        <a href="maombi.html" class="tf-btn outline large" style="margin-bottom:20px;display:flex;align-items:center;justify-content:center;gap:8px;"><i class="icon-left"></i> Rudi Maombi Yangu</a>
+      `;
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,17 @@
+{
+  "rules": {
+    "users": {
+      ".read": "auth != null",
+      "$uid": {
+        ".write": "auth != null && auth.uid === $uid"
+      }
+    },
+    "requests": {
+      ".read": "auth != null",
+      ".indexOn": ["userId", "status", "type"],
+      "$reqId": {
+        ".write": "auth != null"
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "name": "Wakala Point",
+  "short_name": "WakalaPoint",
+  "description": "Huduma za Wakala — Lipa Namba na Till za Uwakala",
+  "start_url": "/index.html",
+  "display": "standalone",
+  "background_color": "#00875A",
+  "theme_color": "#00875A",
+  "orientation": "portrait",
+  "icons": [
+    { "src": "icon-96x96.png", "sizes": "96x96", "type": "image/png" },
+    { "src": "icon-192x192.png", "sizes": "192x192", "type": "image/png" }
+  ]
+}

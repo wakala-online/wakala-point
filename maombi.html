@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Maombi Yangu — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="header is-fixed">
+    <div class="tf-container">
+      <div class="tf-statusbar justify-content-center">
+        <a href="index.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Maombi Yangu</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+
+      <!-- Filter tabs -->
+      <div style="display:flex;gap:8px;margin-bottom:16px;overflow-x:auto;padding-bottom:4px;">
+        <button class="filter-tab active" onclick="filterRequests('yote', this)">Yote</button>
+        <button class="filter-tab" onclick="filterRequests('pending', this)">Inasubiri</button>
+        <button class="filter-tab" onclick="filterRequests('processing', this)">Inashughulikiwa</button>
+        <button class="filter-tab" onclick="filterRequests('approved', this)">Imekubaliwa</button>
+        <button class="filter-tab" onclick="filterRequests('rejected', this)">Imekataliwa</button>
+      </div>
+
+      <div id="list-container"></div>
+
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-navigation-bar">
+    <a href="index.html" class="item">
+      <i class="icon-home"></i><p>Nyumbani</p>
+    </a>
+    <a href="maombi.html" class="item active">
+      <i class="icon-request"></i><p>Maombi</p>
+    </a>
+    <a href="arifa.html" class="item">
+      <i class="icon-noti"></i><p>Arifa</p>
+    </a>
+    <a href="profile.html" class="item">
+      <i class="icon-user-outline"></i><p>Akaunti</p>
+    </a>
+  </div>
+
+  <style>
+    .filter-tab { background:#fff; border:1.5px solid var(--wakala-border); border-radius:20px; padding:6px 16px; font-size:12px; font-weight:600; cursor:pointer; white-space:nowrap; color:var(--wakala-text-muted); transition:all 0.2s; }
+    .filter-tab.active { background:var(--wakala-primary); border-color:var(--wakala-primary); color:#fff; }
+  </style>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    let allMyReqs = [];
+
+    document.addEventListener('DOMContentLoaded', async function () {
+      if (!(await requireAuth())) return;
+      document.getElementById('list-container').innerHTML = '<div class="empty-state"><p>Inapakia...</p></div>';
+      allMyReqs = await getUserRequests();
+      renderList(allMyReqs);
+    });
+
+    function filterRequests(status, btn) {
+      document.querySelectorAll('.filter-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const filtered = status === 'yote' ? allMyReqs : allMyReqs.filter(r => r.status === status);
+      renderList(filtered);
+    }
+
+    function renderList(list) {
+      const el = document.getElementById('list-container');
+      if (list.length === 0) {
+        el.innerHTML = `<div class="empty-state"><div class="empty-icon"><i class="icon-request" style="font-size:48px;color:var(--wakala-text-muted);opacity:0.5;"></i></div><h4>Hakuna Maombi</h4><p>Hakuna maombi yanayolingana na kichujio hiki</p></div>`;
+        return;
+      }
+      el.innerHTML = list.map(r => `
+        <a href="ombi-detail.html?id=${r.id}" class="request-item">
+          <div class="req-header">
+            <span class="req-type">${serviceLabel(r.type)}</span>
+            ${statusBadge(r.status)}
+          </div>
+          <p class="req-name">${r.details.jina || 'Ombi'}</p>
+          <p class="req-sub">${r.id} · ${formatDate(r.tarehe)}</p>
+          ${r.adminNote ? `<p style="font-size:12px;color:var(--wakala-primary);margin:6px 0 0;display:flex;gap:5px;align-items:flex-start;"><i class="icon-info" style="margin-top:1px;flex-shrink:0;"></i><span>${r.adminNote}</span></p>` : ''}
+        </a>
+      `).join('');
+    }
+  </script>
+</body>
+</html>

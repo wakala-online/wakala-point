@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Jiandikishe — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body>
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="header is-fixed">
+    <div class="tf-container">
+      <div class="tf-statusbar justify-content-center">
+        <a href="login.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Jiandikishe</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;">
+    <div class="tf-container" style="padding:20px 16px;">
+      <div class="group-input">
+        <label>Jina Kamili</label>
+        <input type="text" id="inp-jina" placeholder="Mfano: Amina Juma">
+      </div>
+      <div class="group-input">
+        <label>Barua Pepe</label>
+        <input type="email" id="inp-email" placeholder="mfano@gmail.com">
+      </div>
+      <div class="group-input">
+        <label>Namba ya Simu</label>
+        <input type="tel" id="inp-simu" placeholder="+255 7XX XXX XXX">
+      </div>
+      <div class="group-input">
+        <label>Mkoa</label>
+        <select id="inp-mkoa">
+          <option value="">-- Chagua Mkoa --</option>
+          <option>Dar es Salaam</option><option>Mwanza</option><option>Arusha</option>
+          <option>Dodoma</option><option>Mbeya</option><option>Morogoro</option>
+          <option>Tanga</option><option>Zanzibar</option><option>Kigoma</option>
+          <option>Tabora</option><option>Lindi</option><option>Mtwara</option>
+          <option>Singida</option><option>Shinyanga</option><option>Kagera</option>
+        </select>
+      </div>
+      <div class="group-input auth-pass-input">
+        <label>Nenosiri</label>
+        <input type="password" id="inp-pass" class="password-input" placeholder="Angalau herufi 6">
+        <a class="icon-eye password-addon" id="password-addon"></a>
+      </div>
+      <div class="group-input auth-pass-input last">
+        <label>Thibitisha Nenosiri</label>
+        <input type="password" id="inp-pass2" class="password-input" placeholder="Rudia nenosiri">
+        <a class="icon-eye password-addon" id="password-addon2"></a>
+      </div>
+
+      <p id="err-msg" style="color:var(--wakala-red);font-size:13px;display:none;margin-bottom:12px;"></p>
+
+      <button class="tf-btn accent large" onclick="doRegister()">Unda Akaunti</button>
+
+      <div class="auth-line">au</div>
+
+      <button class="tf-btn outline large" style="width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;" onclick="doGoogleRegister()">
+        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0;">
+          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64z"/>
+          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
+          <path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.97H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/>
+          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+        </svg>
+        Jiandikishe na Google
+      </button>
+
+      <p class="mt-4 fw-3 text-center">Una akaunti? <a href="login.html" class="auth-link-rg">Ingia</a></p>
+    </div>
+  </div>
+
+  <script type="module" src="firebase-init.js"></script>
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="password-addon.js"></script>
+  <script src="main.js"></script>
+  <script>
+    async function doRegister() {
+      const jina = document.getElementById('inp-jina').value.trim();
+      const email = document.getElementById('inp-email').value.trim();
+      const simu = document.getElementById('inp-simu').value.trim();
+      const mkoa = document.getElementById('inp-mkoa').value;
+      const pass = document.getElementById('inp-pass').value;
+      const pass2 = document.getElementById('inp-pass2').value;
+      const err = document.getElementById('err-msg');
+      const btn = document.querySelector('button.tf-btn.accent.large');
+      err.style.display = 'none';
+      if (!jina || !email || !simu || !mkoa || !pass) { err.textContent = 'Tafadhali jaza sehemu zote.'; err.style.display='block'; return; }
+      if (pass !== pass2) { err.textContent = 'Nenosiri hazifanani.'; err.style.display='block'; return; }
+      if (pass.length < 6) { err.textContent = 'Nenosiri lazima iwe angalau herufi 6.'; err.style.display='block'; return; }
+      if (btn) { btn.disabled = true; btn.textContent = 'Inaandikisha...'; }
+      try {
+        const newUser = await registerUser({ jina, simu, mkoa, email, pass });
+        saveUser(newUser);
+        window.location.href = 'index.html';
+      } catch (e) {
+        err.textContent = e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.';
+        err.style.display = 'block';
+        if (btn) { btn.disabled = false; btn.textContent = 'Unda Akaunti'; }
+      }
+    }
+    async function doGoogleRegister() {
+      const err = document.getElementById('err-msg');
+      err.style.display = 'none';
+      try {
+        const newUser = await loginWithGoogle();
+        saveUser(newUser);
+        window.location.href = 'index.html';
+      } catch (e) {
+        err.textContent = e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.';
+        err.style.display = 'block';
+      }
+    }
+  </script>
+</body>
+</html>

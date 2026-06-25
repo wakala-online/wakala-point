@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="sw">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Msaada — Wakala Point</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="fonts.css">
+  <link rel="stylesheet" href="icons-alipay.css">
+  <link rel="stylesheet" href="bootstrap.css">
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="wakala.css">
+</head>
+<body class="bg_surface_color">
+  <div class="preload preload-container">
+    <div class="preload-logo"><div class="spinner"></div></div>
+  </div>
+
+  <div class="header is-fixed">
+    <div class="tf-container">
+      <div class="tf-statusbar justify-content-center">
+        <a href="profile.html" class="back-btn"><i class="icon-left"></i></a>
+        <h3>Msaada & Maswali</h3>
+      </div>
+    </div>
+  </div>
+
+  <div id="app-wrap" style="padding-top:72px;padding-bottom:76px;">
+    <div class="tf-container" style="padding:16px;">
+
+      <!-- Contact Buttons -->
+      <div style="background:var(--wakala-primary);border-radius:16px;padding:20px;color:#fff;margin-bottom:16px;text-align:center;">
+        <div style="width:56px;height:56px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
+          <img src="logo-white.png" height="40">
+        </div>
+        <h3 style="font-size:16px;font-weight:700;margin:0 0 4px; color: white">Wasiliana Nasi</h3>
+        <p style="font-size:12px;opacity:0.8;margin:0 0 16px;">Wakala Point Tuko tayari kukusaidia</p>
+        <div style="display:flex;gap:10px;justify-content:center;">
+          <a href="tel:+255698232313" style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;"><i class="icon-phone"></i> Piga Simu</a>
+          <a href="https://wa.me/255698232313" style="background:rgba(255,255,255,0.2);color:#fff;padding:8px 20px;border-radius:20px;font-size:13px;font-weight:600;text-decoration:none;display:flex;align-items:center;gap:6px;"><i class="icon-send2"></i> WhatsApp</a>
+        </div>
+      </div>
+
+      <!-- FAQ -->
+      <p class="section-title">Maswali Yanayoulizwa Mara Kwa Mara</p>
+
+      <div id="faq-list"></div>
+
+    </div>
+  </div>
+
+  <style>
+    .faq-item { background:#fff; border-radius:12px; margin-bottom:10px; box-shadow:var(--wakala-shadow); overflow:hidden; }
+    .faq-q { padding:16px; display:flex; justify-content:space-between; align-items:center; cursor:pointer; font-size:14px; font-weight:600; }
+    .faq-a { padding:0 16px; max-height:0; overflow:hidden; transition:all 0.3s; font-size:13px; color:var(--wakala-text-muted); line-height:1.6; }
+    .faq-a.open { max-height:200px; padding:0 16px 16px; }
+    .faq-icon { transition:transform 0.3s; font-size:12px; }
+    .faq-icon.open { transform:rotate(180deg); }
+  </style>
+
+  <script src="jquery.min.js"></script>
+  <script src="wakala.js"></script>
+  <script src="main.js"></script>
+  <script src="sidebar.js"></script>
+  <script>
+    const faqs = [
+      { q: 'Ni nini Lipa Namba?', a: 'Lipa Namba ni namba ya kipekee inayokuwezesha kupokea malipo ya simu (M-Pesa, Tigo Pesa, Airtel Money) kwa biashara yako. Wateja wanaweza kukupelekea fedha kwa kutumia namba hiyo.' },
+      { q: 'Ni nini Till ya Uwakala?', a: 'Till ya Uwakala ni akaunti inayokuwezesha kufanya kazi kama mwakilishi wa kampuni ya simu. Unaweza kutoa na kupokea fedha kwa wateja, kulipa bili, na kupata kamisheni kila wakati.' },
+      { q: 'Ninahitaji nini ili kutuma ombi?', a: 'Unahitaji: kitambulisho cha utambulisho (NIDA, Pasi, au Voter ID), namba ya simu inayofanya kazi, na kama ni biashara, namba ya usajili wa BRELA/TRA.' },
+      { q: 'Ni muda gani ombi linachukua kufanyiwa kazi?', a: 'Maombi mengi yanashughulikiwa ndani ya siku 1–3 za kazi. Mara tu ombi lako limekamilika, utapata arifa kwenye programu na simu yako.' },
+      { q: 'Je, ninaweza kufuatilia hali ya ombi langu?', a: 'Ndiyo! Nenda sehemu ya "Maombi Yangu" au bonyeza ombi mahususi kuona hali yake kwa wakati halisi pamoja na ujumbe wa timu yetu.' },
+      { q: 'Gharama ya huduma ni nini?', a: 'Uwasiliano wa awali na usajili ni BURE. Baadaye, ada ndogo inategemea mtandao na aina ya huduma. Tutakuarifu kabla ya malipo yoyote.' },
+      { q: 'Je, ninaweza kuwa wakala wa mtandao zaidi ya mmoja?', a: 'Unaweza kuomba wakala wa mtandao tofauti, lakini kila ombi linahusishwa na akaunti tofauti. Wasiliana nasi kwa mazungumzo zaidi.' },
+    ];
+
+    document.getElementById('faq-list').innerHTML = faqs.map((f, i) => `
+      <div class="faq-item">
+        <div class="faq-q" onclick="toggleFaq(${i})">
+          <span>${f.q}</span>
+          <span class="faq-icon" id="icon-${i}"><i class="icon-down"></i></span>
+        </div>
+        <div class="faq-a" id="ans-${i}">${f.a}</div>
+      </div>
+    `).join('');
+
+    function toggleFaq(i) {
+      const ans = document.getElementById('ans-' + i);
+      const icon = document.getElementById('icon-' + i);
+      ans.classList.toggle('open');
+      icon.classList.toggle('open');
+    }
+  </script>
+</body>
+</html>
