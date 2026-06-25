@@ -1,200 +1,550 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Lipa Namba System</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
+  <title>Omba Lipa Namba — Wakala Point</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
-<style>
-body{font-family:Arial;background:#f4f6f8;margin:0;padding:20px}
-.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
-button{padding:10px;margin:5px;border:none;border-radius:8px;cursor:pointer;background:#1A9E5C;color:#fff}
-input,select{width:100%;padding:10px;margin:5px 0;border:1px solid #ddd;border-radius:6px}
-.hidden{display:none}
-.error{color:red;font-size:13px}
-.ok{color:green;font-size:13px}
-</style>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --green:     #1A9E5C;
+      --green-dk:  #127A44;
+      --green-bg:  #EAF7F0;
+      --amber:     #F5A623;
+      --amber-bg:  #FFF3CD;
+      --red:       #B91C1C;
+      --red-bg:    #FEF2F2;
+      --surface:   #F4F6F8;
+      --white:     #FFFFFF;
+      --text-main: #111827;
+      --text-sub:  #6B7280;
+      --border:    #E5E7EB;
+      --radius:    14px;
+      --shadow:    0 2px 12px rgba(0,0,0,.08);
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--surface);
+      color: var(--text-main);
+      min-height: 100vh;
+    }
+
+    .header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: var(--white);
+      border-bottom: 1px solid var(--border);
+      height: 60px;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 1px 8px rgba(0,0,0,.06);
+    }
+    .header .back-btn {
+      position: absolute; left: 16px;
+      width: 36px; height: 36px;
+      display: flex; align-items: center; justify-content: center;
+      border-radius: 50%; border: 1px solid var(--border);
+      text-decoration: none; color: var(--text-main);
+      font-size: 18px; transition: background .15s;
+    }
+    .header .back-btn:hover { background: var(--surface); }
+    .header h3 { font-size: 16px; font-weight: 700; }
+
+    .page-wrap {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 76px 16px 40px;
+    }
+
+    .info-banner {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: var(--green-bg);
+      border: 1px solid #B7E8D0;
+      border-radius: var(--radius);
+      padding: 14px 16px;
+      margin-bottom: 20px;
+      font-size: 13.5px;
+      color: #0F5E38;
+      line-height: 1.5;
+    }
+    .info-banner .dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--green); flex-shrink: 0; margin-top: 5px;
+    }
+
+    .card {
+      background: var(--white);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+      padding: 20px;
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--text-sub);
+      margin-bottom: 14px;
+    }
+
+    .type-grid {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    }
+    .type-btn {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--white);
+      padding: 18px 12px;
+      cursor: pointer;
+      text-align: center;
+      transition: border-color .2s, background .2s, transform .1s;
+    }
+    .type-btn:hover  { border-color: var(--green); background: var(--green-bg); }
+    .type-btn.active { border-color: var(--green); background: var(--green-bg); }
+    .type-btn:active { transform: scale(.97); }
+    .type-btn .icon { font-size: 26px; margin-bottom: 6px; }
+    .type-btn .label { font-size: 13px; font-weight: 600; color: var(--text-main); }
+    .type-btn .sub   { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
+
+    .net-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
+    }
+    .net-chip {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      padding: 12px 14px;
+      cursor: pointer;
+      display: flex; align-items: center; justify-content: space-between;
+      transition: border-color .2s, background .2s;
+    }
+    .net-chip:hover  { border-color: var(--green); background: var(--green-bg); }
+    .net-chip.active { border-color: var(--green); background: var(--green-bg); }
+    .net-chip .net-name { font-size: 13px; font-weight: 600; }
+    .net-chip .net-price {
+      font-size: 11px; font-weight: 700;
+      background: var(--green-bg); color: var(--green-dk);
+      border-radius: 20px; padding: 2px 8px;
+    }
+    .net-chip .net-price.free {
+      background: var(--amber-bg); color: #92600A;
+    }
+    .chosen-badge {
+      display: none;
+      align-items: center; gap: 8px;
+      background: var(--green-bg); color: var(--green-dk);
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; font-weight: 600;
+      margin-top: 10px;
+    }
+    .chosen-badge.show { display: flex; }
+    .change-link {
+      margin-left: auto; font-size: 12px;
+      color: var(--green); cursor: pointer; text-decoration: underline;
+    }
+
+    .group-input { margin-bottom: 14px; }
+    .group-input label {
+      display: block;
+      font-size: 12px; font-weight: 600;
+      color: var(--text-sub);
+      margin-bottom: 6px;
+      letter-spacing: .02em;
+    }
+    .group-input label .opt {
+      font-weight: 500; color: #9CA3AF; text-transform: none;
+      letter-spacing: 0; margin-left: 4px;
+    }
+    .group-input input,
+    .group-input select,
+    .group-input textarea {
+      width: 100%;
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      font-size: 14px; font-family: 'Inter', sans-serif;
+      color: var(--text-main);
+      background: var(--white);
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .group-input input:focus,
+    .group-input select:focus,
+    .group-input textarea:focus {
+      border-color: var(--green);
+      box-shadow: 0 0 0 3px rgba(26,158,92,.12);
+    }
+    .group-input textarea { resize: vertical; min-height: 80px; }
+
+    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    .divider {
+      border: none; border-top: 1px solid var(--border);
+      margin: 18px 0;
+    }
+
+    .err-msg {
+      display: none;
+      background: var(--red-bg); color: var(--red);
+      border: 1px solid #FECACA;
+      border-radius: 10px; padding: 10px 14px;
+      font-size: 13px; margin-bottom: 14px;
+    }
+
+    .notice {
+      display: flex; gap: 10px; align-items: flex-start;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px; line-height: 1.5;
+      margin-bottom: 14px;
+    }
+    .notice.info {
+      background: var(--green-bg); color: #0F5E38; border: 1px solid #B7E8D0;
+    }
+    .notice.warn {
+      background: var(--amber-bg); color: #92600A; border: 1px solid #F6D98B;
+    }
+    .notice strong { font-weight: 700; }
+
+    .yn-group { margin-bottom: 14px; }
+    .yn-label {
+      font-size: 13px; font-weight: 600; color: var(--text-main);
+      margin-bottom: 8px; display: block;
+    }
+    .yn-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .yn-btn {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      background: var(--white);
+      padding: 11px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer;
+      transition: border-color .2s, background .2s, color .2s;
+      color: var(--text-main);
+    }
+    .yn-btn.yes.active { border-color: var(--green); background: var(--green-bg); color: var(--green-dk); }
+    .yn-btn.no.active  { border-color: var(--red); background: var(--red-bg); color: var(--red); }
+
+    .file-options {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin-bottom: 6px;
+    }
+    .file-opt {
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      font-size: 12.5px; font-weight: 600;
+      cursor: pointer; text-align: center;
+      transition: border-color .2s, background .2s;
+    }
+    .file-opt:hover { border-color: var(--green); background: var(--green-bg); }
+    .file-opt.active { border-color: var(--green); background: var(--green-bg); color: var(--green-dk); }
+    .file-input-row {
+      display: none;
+      margin-top: 6px;
+    }
+    .file-input-row.show { display: block; }
+    .file-name-preview {
+      font-size: 12px; color: var(--text-sub); margin-top: 6px;
+    }
+
+    .otp-box { display: none; }
+    .otp-box.show { display: block; }
+    .otp-box input {
+      text-align: center; letter-spacing: 6px; font-size: 18px; font-weight: 700;
+    }
+
+    .hidden { display: none !important; }
+
+    .btn-submit {
+      width: 100%;
+      background: var(--green);
+      color: #fff;
+      border: none; border-radius: var(--radius);
+      padding: 15px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      letter-spacing: .02em;
+      transition: background .2s, transform .1s, box-shadow .2s;
+      box-shadow: 0 4px 14px rgba(26,158,92,.30);
+    }
+    .btn-submit:hover  { background: var(--green-dk); box-shadow: 0 6px 18px rgba(26,158,92,.35); }
+    .btn-submit:active { transform: scale(.98); }
+    .btn-submit:disabled { background: #9CA3AF; box-shadow: none; cursor: not-allowed; }
+
+    .btn-secondary {
+      width: 100%;
+      background: var(--white);
+      color: var(--green-dk);
+      border: 1.5px solid var(--green);
+      border-radius: var(--radius);
+      padding: 13px;
+      font-size: 14px; font-weight: 700;
+      cursor: pointer;
+      margin-top: 10px;
+    }
+
+    .tl-contact {
+      display: flex; align-items: center; gap: 10px;
+      background: var(--green-bg);
+      border: 1px solid #B7E8D0;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 13px;
+      color: #0F5E38;
+      margin-top: 4px;
+    }
+    .tl-contact a {
+      color: var(--green-dk); font-weight: 700; text-decoration: none;
+    }
+  </style>
 </head>
 
 <body>
 
-<div class="card">
-<h3>Chagua Lipa Namba</h3>
-
-<button onclick="selectType('airtel')">Airtel</button>
-<button onclick="selectType('tigo')">Tigo/Yas</button>
-<button onclick="selectType('vodacom')">Vodacom</button>
-<button onclick="selectType('azam')">Azam</button>
-<button onclick="selectType('halotel')">Halotel</button>
-<button onclick="selectType('till')">Till</button>
+<div class="header">
+  <a href="index.html" class="back-btn">&#8592;</a>
+  <h3>Omba Lipa Namba</h3>
 </div>
 
-<div class="card" id="formBox"></div>
+<div class="page-wrap">
 
-<script>
-let type="";
-let otpCode="";
+  <div class="info-banner">
+    <span class="dot"></span>
+    <span><strong>Lipa Namba</strong> ni namba ya kipekee ya kupokea malipo ya biashara yako kwa urahisi.</span>
+  </div>
 
-function selectType(t){
-type=t;
-render();
-}
+  <div class="card" id="card-type">
+    <p class="section-label">Hatua ya 1 — Aina ya Lipa Namba</p>
+    <div class="type-grid">
+      <button class="type-btn" id="btn-mtandao" onclick="showMtandao()">
+        <div class="icon">📶</div>
+        <div class="label">Lipa Namba</div>
+        <div class="sub">ya Mtandao</div>
+      </button>
+      <button class="type-btn" id="btn-till" onclick="showTill()">
+        <div class="icon">🏪</div>
+        <div class="label">Till Namba</div>
+        <div class="sub">ya Duka</div>
+      </button>
+    </div>
+  </div>
 
-function render(){
-let box=document.getElementById("formBox");
+  <div class="card" id="step-mtandao" style="display:none;">
+    <p class="section-label">Hatua ya 2 — Chagua Mtandao</p>
+    <div class="net-grid">
+      <button class="net-chip" onclick="setPackage('Airtel',0,this)">
+        <span class="net-name">Airtel</span>
+        <span class="net-price free">Bure</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Tigo/Yas',0,this)">
+        <span class="net-name">Tigo / Yas</span>
+        <span class="net-price free">Bure</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Vodacom',0,this)">
+        <span class="net-name">Vodacom</span>
+        <span class="net-price free">Bure</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Azam Pesa',5000,this)">
+        <span class="net-name">Azam Pesa</span>
+        <span class="net-price">TZS 5,000</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Halotel',5000,this)">
+        <span class="net-name">Halotel</span>
+        <span class="net-price">TZS 5,000</span>
+      </button>
+    </div>
+    <div class="chosen-badge" id="chosen-badge">
+      ✅ <span id="chosen-text">–</span>
+      <span class="change-link" onclick="clearPackage()">Badilisha</span>
+    </div>
+  </div>
 
-if(type==="airtel"){
-box.innerHTML=`
-<h3>Airtel</h3>
-<input id="phone" placeholder="Namba ya simu">
-<input id="biz" placeholder="Jina la biashara (hiari)">
-<button onclick="submitAirtel()">Tuma</button>
-<div id="msg"></div>
-`;
-}
+  <div class="card" id="step-till" style="display:none;">
+    <p class="section-label">Hatua ya 2 — Aina ya Till</p>
+    <div class="net-grid">
+      <button class="net-chip" onclick="setPackage('Till Airtel',3000,this)">
+        <span class="net-name">Till Airtel</span>
+        <span class="net-price">TZS 3,000</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Till Halotel',10000,this)">
+        <span class="net-name">Till Halotel</span>
+        <span class="net-price">TZS 10,000</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Till Vodacom',30000,this)">
+        <span class="net-name">Till Vodacom</span>
+        <span class="net-price">TZS 30,000</span>
+      </button>
+      <button class="net-chip" onclick="setPackage('Azam Pesa Till',10000,this)">
+        <span class="net-name">Azam Pesa</span>
+        <span class="net-price">TZS 10,000</span>
+      </button>
+    </div>
+    <div class="chosen-badge" id="chosen-badge-till">
+      ✅ <span id="chosen-text-till">–</span>
+      <span class="change-link" onclick="clearPackage()">Badilisha</span>
+    </div>
+  </div>
 
-if(type==="tigo"){
-box.innerHTML=`
-<h3>Tigo/Yas OTP</h3>
-<input id="phone" placeholder="Namba ya simu">
-<button onclick="sendOTP()">Tuma OTP</button>
-<div id="otpBox"></div>
-<div id="msg"></div>
-`;
-}
+  <form id="dynamic-form" class="hidden">
 
-if(type==="vodacom"){
-box.innerHTML=`
-<h3>Vodacom</h3>
-<input id="name1" placeholder="Jina 1">
-<input id="name2" placeholder="Jina 2">
-<input id="name3" placeholder="Jina 3">
-<input id="phone" placeholder="Simu">
-<input id="nida" placeholder="NIDA">
-<input type="file">
-<button onclick="submitVodacom()">Tuma</button>
-<div id="msg"></div>
-`;
-}
+    <div class="card field-block" id="fields-Airtel" style="display:none;">
+      <p class="section-label">Taarifa za Airtel Lipa Namba</p>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="airtel-simu" placeholder="+255...">
+      </div>
+      <div class="group-input">
+        <label>Jina la Biashara <span class="opt">(hiari)</span></label>
+        <input type="text" id="airtel-biz" placeholder="Mfano: Duka la Amina">
+      </div>
+    </div>
 
-if(type==="azam"){
-box.innerHTML=`
-<h3>Azam Pesa</h3>
-<input id="acc" placeholder="Account number">
-<input id="nida" placeholder="NIDA">
-<input id="biz" placeholder="Biashara (hiari)">
-<input type="file">
-<button onclick="submitAzam()">Tuma</button>
-<div id="msg"></div>
-`;
-}
+    <div class="card field-block" id="fields-Tigo/Yas" style="display:none;">
+      <p class="section-label">Taarifa za Tigo / Yas Lipa Namba</p>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="tigo-simu" placeholder="+255...">
+      </div>
+      <div class="notice info">
+        <span>ℹ️</span>
+        <span>Baada ya kutuma ombi, utapokea <strong>OTP</strong> kwenye namba uliyoweka — itahitajika kuiweka hapa kuwezesha Lipa Namba.</span>
+      </div>
+    </div>
 
-if(type==="halotel"){
-box.innerHTML=`
-<h3>Halotel</h3>
-<input id="phone" placeholder="Namba ya simu">
-<input id="nida" placeholder="NIDA">
-<button onclick="submitHalotel()">Tuma</button>
-<div id="msg"></div>
-`;
-}
+    <div class="card field-block" id="fields-Vodacom" style="display:none;">
+      <p class="section-label">Taarifa za Vodacom Lipa Namba</p>
+      <div class="group-input">
+        <label>Majina Matatu (kama yalivyo NIDA) *</label>
+        <input type="text" id="voda-jina" placeholder="Mfano: Amina Hassan Juma">
+      </div>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="voda-simu" placeholder="+255...">
+      </div>
+      <div class="notice warn">
+        <span>⚠️</span>
+        <span>Namba hii <strong>isiwe</strong> imefunguliwa M-Pesa.</span>
+      </div>
+      <div class="group-input">
+        <label>Namba ya NIDA *</label>
+        <input type="text" id="voda-nida" placeholder="Namba ya NIDA">
+      </div>
+      <div class="group-input">
+        <label>Picha ya Kitambulisho (chagua mojawapo) *</label>
+        <div class="file-options" id="voda-doc-options"></div>
+        <div class="file-input-row" id="voda-file-row">
+          <input type="file" id="voda-file" accept="image/*,.pdf">
+          <div class="file-name-preview" id="voda-file-name"></div>
+        </div>
+      </div>
+    </div>
 
-if(type==="till"){
-box.innerHTML=`
-<h3>Till</h3>
+    <div class="card field-block" id="fields-Azam Pesa" style="display:none;">
+      <p class="section-label">Taarifa za Azam Pesa Lipa Namba</p>
+      <div class="group-input">
+        <label>Account Number ya Azam Pesa *</label>
+        <input type="text" id="azam-acc" placeholder="Namba ya akaunti">
+      </div>
+      <div class="notice info">
+        <span>ℹ️</span>
+        <span>Kama hauna Account Number ya Azam Pesa, <strong>wasiliana na admin</strong> kabla ya kuendelea.</span>
+      </div>
+      <div class="group-input">
+        <label>Namba ya NIDA *</label>
+        <input type="text" id="azam-nida" placeholder="Namba ya NIDA">
+      </div>
+      <div class="group-input">
+        <label>Jina la Biashara <span class="opt">(hiari)</span></label>
+        <input type="text" id="azam-biz" placeholder="Jina la biashara">
+      </div>
+      <div class="group-input">
+        <label>Picha ya Kitambulisho (chagua mojawapo) *</label>
+        <div class="file-options" id="azam-doc-options"></div>
+        <div class="file-input-row" id="azam-file-row">
+          <input type="file" id="azam-file" accept="image/*,.pdf">
+          <div class="file-name-preview" id="azam-file-name"></div>
+        </div>
+      </div>
+    </div>
 
-<select id="tillType" onchange="tillRender()">
-<option value="">Chagua</option>
-<option value="airtel">Till Airtel</option>
-<option value="halotel">Till Halotel</option>
-<option value="vodacom">Till Vodacom</option>
-</select>
+    <div class="card field-block" id="fields-Halotel" style="display:none;">
+      <p class="section-label">Taarifa za Halotel Lipa Namba</p>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="halo-simu" placeholder="+255...">
+      </div>
+      <div class="group-input">
+        <label>Namba ya NIDA *</label>
+        <input type="text" id="halo-nida" placeholder="Namba ya NIDA">
+      </div>
+    </div>
 
-<div id="tillBox"></div>
-`;
-}
-}
+    <div class="card field-block" id="fields-Till Airtel" style="display:none;">
+      <p class="section-label">Taarifa za Till Airtel</p>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="tillairtel-simu" placeholder="+255...">
+      </div>
+      <div class="tl-contact">
+        📞 Wasiliana na TL <a href="tel:0698232313">0698232313</a> kupata huduma
+      </div>
+    </div>
 
-function tillRender(){
-let t=document.getElementById("tillType").value;
-let box=document.getElementById("tillBox");
+    <div class="card field-block" id="fields-Till Halotel" style="display:none;">
+      <p class="section-label">Taarifa za Till Halotel</p>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="tillhalo-simu" placeholder="+255...">
+      </div>
+      <div class="yn-group">
+        <span class="yn-label">Je, umeweka Float SHB 100,000? *</span>
+        <div class="yn-btns">
+          <button type="button" class="yn-btn yes" id="tillhalo-yes" onclick="setYesNo('tillhalo', true)">NDIYO</button>
+          <button type="button" class="yn-btn no" id="tillhalo-no" onclick="setYesNo('tillhalo', false)">HAPANA</button>
+        </div>
+      </div>
+      <p class="notice warn hidden" id="tillhalo-warning">
+        <span>⚠️</span>
+        <span>Bila kuweka Float SHB 100,000, ombi hili <strong>haliwezi kukubaliwa</strong>. Tafadhali weka Float kisha rudi kuendelea.</span>
+      </p>
+      <div class="tl-contact" id="tillhalo-tl" style="display:none;">
+        📞 Wasiliana na TL <a href="tel:0698232313">0698232313</a> kupata huduma
+      </div>
+    </div>
 
-if(t==="airtel"){
-box.innerHTML=`
-<input placeholder="Namba ya simu">
-<p>Wasiliana na TL 0698232313</p>
-<button onclick="ok()">Tuma</button>
-`;
-}
+    <div class="card field-block" id="fields-Till Vodacom" style="display:none;">
+      <p class="section-label">Taarifa za Till Vodacom</p>
+      <div class="group-input">
+        <label>Namba ya Simu *</label>
+        <input type="tel" id="tillvoda-simu" placeholder="+255...">
+      </div>
+      <div class="yn-group">
+        <span class="yn-label">Je, una Scanner ya Vodacom? *</span>
+        <div class="yn-btns">
+          <button type="button" class="yn-btn yes" id="tillvoda-yes" onclick="setYesNo('tillvoda', true)">NDIYO</button>
+          <button type="button" class="yn-btn no" id="tillvoda-no" onclick="setYesNo('tillvoda', false)">HAPANA</button>
+        </div>
+      </div>
+      <p class="notice warn hidden" id="tillvoda-warning">
+        <span>⚠️</span>
+        <span>Scanner ya Vodacom <strong>lazima uwe nayo</strong> kuendelea na ombi hili.</span>
+      </p>
+      <div class="tl-contact" id="tillvoda-tl" style="display:none;">
+        📞 Wasiliana na TL <a href="tel:0698232313">0698232313</a> kupata huduma
+      </div>
+    </div>
 
-if(t==="halotel"){
-box.innerHTML=`
-<input placeholder="Namba ya simu">
-<select id="flot">
-<option>Flot 100,000?</option>
-<option>YES</option>
-<option>NO</option>
-</select>
-<button onclick="checkFlot()">Endelea</button>
-`;
-}
-
-if(t==="vodacom"){
-box.innerHTML=`
-<input placeholder="Namba ya simu">
-<select id="scanner">
-<option>Scanner?</option>
-<option>YES</option>
-<option>NO</option>
-</select>
-<button onclick="checkScanner()">Endelea</button>
-`;
-}
-}
-
-/* ================= OTP ================= */
-function sendOTP(){
-otpCode=Math.floor(100000+Math.random()*900000);
-document.getElementById("otpBox").innerHTML=`
-<input id="otpInput" placeholder="Weka OTP">
-<button onclick="verifyOTP()">Thibitisha</button>
-`;
-alert("OTP: "+otpCode);
-}
-
-function verifyOTP(){
-let input=document.getElementById("otpInput").value;
-if(input==otpCode){
-document.getElementById("msg").innerHTML="<span class='ok'>OTP Verified ✔</span>";
-}else{
-document.getElementById("msg").innerHTML="<span class='error'>OTP si sahihi</span>";
-}
-}
-
-/* ================= RULES ================= */
-function checkFlot(){
-if(document.getElementById("flot").value!=="YES"){
-alert("Flot ni lazima");
-return;
-}
-alert("OK → TL 0698232313");
-}
-
-function checkScanner(){
-if(document.getElementById("scanner").value!=="YES"){
-alert("Scanner lazima uwe nayo");
-return;
-}
-alert("OK → TL 0698232313");
-}
-
-/* ================= SUBMIT ================= */
-function submitAirtel(){alert("Airtel submitted")}
-function submitVodacom(){alert("Vodacom submitted")}
-function submitAzam(){alert("Azam submitted")}
-function submitHalotel(){alert("Halotel submitted")}
-function ok(){alert("Submitted")}
-</script>
-
-</body>
-</html>
+    <div class="card field-block" id="fields-Azam Pesa Till" style="display:none;">
+      <p class="section-label">Taarifa za Azam Pesa Till</p>
+      <div class="group-input">
+        <label>Account Number ya Azam Pesa *</label>
+        <input type="text" id="azamtill-acc" placeholder="Namba ya akaunti">
+      </div>
+      <div class="notice info">
+        <span>ℹ️</span>
+        <span>Kama hauna Account Number ya Azam Pesa, <strong>wasiliana na admin</strong> k
