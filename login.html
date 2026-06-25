@@ -1,67 +1,484 @@
+```html
 <!DOCTYPE html>
 <html lang="sw">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
   <title>Ingia — Wakala Point</title>
+
   <link rel="manifest" href="manifest.json">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
   <link rel="stylesheet" href="fonts.css">
   <link rel="stylesheet" href="icons-alipay.css">
   <link rel="stylesheet" href="bootstrap.css">
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="wakala.css">
+
+  <style>
+    :root{
+      --login-card-shadow: 0 20px 60px rgba(16,24,40,.10);
+      --login-border: rgba(15,23,42,.06);
+    }
+
+    body{
+      font-family: 'Inter', sans-serif;
+      background:
+        radial-gradient(circle at top right, rgba(29,95,168,.10), transparent 28%),
+        radial-gradient(circle at bottom left, rgba(29,95,168,.08), transparent 24%),
+        var(--wakala-surface);
+      min-height: 100vh;
+    }
+
+    .login-shell{
+      min-height: 100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:24px 0 40px;
+    }
+
+    .login-wrap{
+      width:100%;
+      max-width:460px;
+      margin:0 auto;
+    }
+
+    .brand-top{
+      text-align:center;
+      margin-bottom:24px;
+    }
+
+    .brand-logo{
+      width:104px;
+      height:104px;
+      margin:0 auto 14px;
+      border-radius:24px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      background:linear-gradient(180deg, rgba(255,255,255,.85), rgba(255,255,255,.6));
+      box-shadow:0 12px 34px rgba(0,0,0,.08);
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.65);
+      backdrop-filter: blur(8px);
+    }
+
+    .brand-logo img{
+      max-width:82px;
+      max-height:82px;
+      object-fit:contain;
+      display:block;
+    }
+
+    .brand-title{
+      font-size:26px;
+      font-weight:800;
+      color:var(--wakala-primary);
+      margin:0;
+      letter-spacing:-.4px;
+    }
+
+    .brand-sub{
+      font-size:13px;
+      color:var(--wakala-text-muted);
+      margin:6px 0 0;
+    }
+
+    .login-card{
+      background:#fff;
+      border-radius:28px;
+      padding:24px 20px 22px;
+      box-shadow:var(--login-card-shadow);
+      border:1px solid var(--login-border);
+      position:relative;
+      overflow:hidden;
+    }
+
+    .login-card::before{
+      content:'';
+      position:absolute;
+      inset:0 auto auto 0;
+      width:100%;
+      height:5px;
+      background:linear-gradient(90deg, var(--wakala-primary), #4F8FE0);
+    }
+
+    .card-title{
+      font-size:22px;
+      font-weight:800;
+      color:var(--wakala-text);
+      margin:2px 0 4px;
+      letter-spacing:-.3px;
+    }
+
+    .card-subtitle{
+      font-size:13px;
+      color:var(--wakala-text-muted);
+      margin:0 0 18px;
+      line-height:1.5;
+    }
+
+    .group-input{
+      margin-bottom:14px;
+    }
+
+    .group-input label{
+      display:block;
+      font-size:12px;
+      font-weight:700;
+      color:var(--wakala-text);
+      margin-bottom:7px;
+    }
+
+    .group-input input{
+      width:100%;
+      height:52px;
+      border-radius:14px;
+      border:1.5px solid #e9edf3;
+      background:#fafbfd;
+      padding:0 15px;
+      font-size:14px;
+      outline:none;
+      transition:.18s ease;
+      color:var(--wakala-text);
+    }
+
+    .group-input input::placeholder{
+      color:#98A2B3;
+    }
+
+    .group-input input:focus{
+      border-color:var(--wakala-primary);
+      background:#fff;
+      box-shadow:0 0 0 4px rgba(29,95,168,.10);
+    }
+
+    .auth-pass-input{
+      position:relative;
+    }
+
+    .auth-pass-input .password-input{
+      padding-right:46px;
+    }
+
+    .password-addon{
+      position:absolute;
+      right:14px;
+      top:41px;
+      color:#98A2B3;
+      font-size:18px;
+      cursor:pointer;
+      text-decoration:none;
+    }
+
+    .login-meta-row{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:12px;
+      margin:-2px 0 16px;
+      flex-wrap:wrap;
+    }
+
+    .remember-wrap{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      user-select:none;
+    }
+
+    .remember-wrap input{
+      width:16px;
+      height:16px;
+      accent-color:var(--wakala-primary);
+      cursor:pointer;
+    }
+
+    .remember-wrap label{
+      font-size:13px;
+      color:var(--wakala-text-muted);
+      cursor:pointer;
+      margin:0;
+      font-weight:500;
+    }
+
+    .forgot-link{
+      font-size:13px;
+      font-weight:700;
+      color:var(--wakala-primary);
+      text-decoration:none;
+    }
+
+    .forgot-link:hover{
+      opacity:.9;
+    }
+
+    .err-box,
+    .success-box{
+      display:none;
+      border-radius:14px;
+      padding:12px 14px;
+      font-size:13px;
+      margin-bottom:14px;
+      line-height:1.45;
+    }
+
+    .err-box{
+      background:#FEF2F2;
+      border:1px solid #FECACA;
+      color:#B42318;
+    }
+
+    .success-box{
+      background:#ECFDF3;
+      border:1px solid #ABEFC6;
+      color:#027A48;
+    }
+
+    .tf-btn.large{
+      height:52px;
+      border-radius:14px;
+      font-weight:700;
+      font-size:14px;
+    }
+
+    .btn-loader{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+
+    .btn-spinner{
+      width:16px;
+      height:16px;
+      border:2px solid rgba(255,255,255,.35);
+      border-top-color:#fff;
+      border-radius:50%;
+      animation:spin .7s linear infinite;
+      display:inline-block;
+      flex-shrink:0;
+    }
+
+    .btn-spinner.dark{
+      border:2px solid rgba(29,95,168,.20);
+      border-top-color:var(--wakala-primary);
+    }
+
+    @keyframes spin{
+      to{ transform:rotate(360deg); }
+    }
+
+    .auth-line{
+      position:relative;
+      text-align:center;
+      margin:18px 0 16px;
+      color:#98A2B3;
+      font-size:12px;
+      font-weight:700;
+    }
+
+    .auth-line::before,
+    .auth-line::after{
+      content:'';
+      position:absolute;
+      top:50%;
+      width:40%;
+      height:1px;
+      background:#EAECF0;
+    }
+
+    .auth-line::before{ left:0; }
+    .auth-line::after{ right:0; }
+
+    .google-btn{
+      width:100%;
+      margin-bottom:14px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      background:#fff;
+    }
+
+    .google-btn svg{
+      flex-shrink:0;
+    }
+
+    .mini-note{
+      background:linear-gradient(180deg, rgba(29,95,168,.08), rgba(29,95,168,.05));
+      border:1px solid rgba(29,95,168,.10);
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:14px;
+    }
+
+    .mini-note h4{
+      margin:0 0 6px;
+      font-size:13px;
+      font-weight:800;
+      color:var(--wakala-primary);
+    }
+
+    .mini-note p{
+      margin:0;
+      font-size:12px;
+      color:var(--wakala-text-muted);
+      line-height:1.5;
+    }
+
+    .demo-section{
+      display:none;
+      background:var(--wakala-primary-light);
+      border-radius:16px;
+      padding:14px;
+      margin-bottom:14px;
+    }
+
+    .demo-section p{
+      font-size:13px;
+      font-weight:700;
+      color:var(--wakala-primary);
+      margin:0 0 10px;
+    }
+
+    .auth-bottom{
+      text-align:center;
+      font-size:13px;
+      color:var(--wakala-text-muted);
+      margin:16px 0 0;
+    }
+
+    .auth-link-rg{
+      color:var(--wakala-primary);
+      font-weight:700;
+      text-decoration:none;
+    }
+
+    .footer-copy{
+      text-align:center;
+      font-size:12px;
+      color:#98A2B3;
+      margin-top:18px;
+    }
+
+    @media (max-width: 480px){
+      .login-shell{
+        align-items:flex-start;
+        padding-top:18px;
+      }
+
+      .login-card{
+        border-radius:24px;
+        padding:22px 16px 20px;
+      }
+
+      .brand-logo{
+        width:96px;
+        height:96px;
+      }
+
+      .brand-title{
+        font-size:24px;
+      }
+
+      .card-title{
+        font-size:20px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="preload preload-container">
-    <div class="preload-logo"><div class="spinner"></div></div>
+    <div class="preload-logo">
+      <div class="spinner"></div>
+    </div>
   </div>
 
-  <div class="mt-7 login-section">
-    <div class="tf-container">
-      <!-- Logo -->
-      <div style="text-align:center; margin-bottom:32px;">
-        <div style="width:102px;height:102px;background: none;border-radius:20px;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;">
-          <img src="logo.png">
+  <div class="login-shell">
+    <div class="tf-container login-wrap">
+
+      <!-- Top Branding -->
+      <div class="brand-top">
+        <div class="brand-logo">
+          <img src="logo.png" alt="Wakala Point Logo">
         </div>
-        <h1 style="font-size:24px;font-weight:800;color:var(--wakala-primary);margin:0;">Wakala Point</h1>
-        <p style="font-size:13px;color:var(--wakala-text-muted);margin:4px 0 0;">Huduma za Wakala kwa Urahisi</p>
+        <h1 class="brand-title">Wakala Point</h1>
+        <p class="brand-sub">Huduma za Wakala kwa Urahisi</p>
       </div>
 
-      <div class="group-input">
-        <label>Barua Pepe</label>
-        <input type="email" id="inp-email" placeholder="mfano@gmail.com">
+      <!-- Login Card -->
+      <div class="login-card">
+        <h2 class="card-title">Karibu tena 👋</h2>
+        <p class="card-subtitle">
+          Ingia kwenye akaunti yako ili uendelee na maombi, taarifa za wakala na huduma zako zote.
+        </p>
+
+        <div class="group-input">
+          <label for="inp-email">Barua Pepe</label>
+          <input type="email" id="inp-email" placeholder="mfano@gmail.com" autocomplete="email">
+        </div>
+
+        <div class="group-input auth-pass-input">
+          <label for="inp-pass">Nenosiri</label>
+          <input type="password" id="inp-pass" class="password-input" placeholder="Weka nenosiri" autocomplete="current-password">
+          <a class="icon-eye password-addon" id="password-addon"></a>
+        </div>
+
+        <div class="login-meta-row">
+          <div class="remember-wrap">
+            <input type="checkbox" id="remember-me">
+            <label for="remember-me">Nikumbuke</label>
+          </div>
+          <a href="#" class="forgot-link" onclick="forgotPassword(event)">Umesahau nenosiri?</a>
+        </div>
+
+        <div id="err-msg" class="err-box"></div>
+        <div id="success-msg" class="success-box"></div>
+
+        <button class="tf-btn accent large" id="login-btn" onclick="doLogin()">Ingia</button>
+
+        <div class="auth-line">au</div>
+
+        <button class="tf-btn outline large google-btn" id="google-btn" onclick="doGoogleLogin()">
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.97H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/>
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+          </svg>
+          Ingia na Google
+        </button>
+
+        <div class="mini-note">
+          <h4>Usalama wa Akaunti</h4>
+          <p>
+            Tumia barua pepe sahihi na nenosiri lako la akaunti. Kama umesahau nenosiri,
+            tumia kitufe cha “Umesahau nenosiri?” kuweka upya.
+          </p>
+        </div>
+
+        <!-- Demo section (hidden by default) -->
+        <div class="demo-section" id="demo-section">
+          <p>Demo ya Haraka</p>
+          <button class="tf-btn outline" style="margin-bottom:8px;width:100%;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="demoLogin('user')">
+            <i class="icon-user-outline"></i> Ingia kama Demo
+          </button>
+          <button class="tf-btn outline" style="width:100%;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="demoLogin('admin')">
+            <i class="icon-secure1"></i> Ingia kama Admin Demo
+          </button>
+        </div>
+
+        <p class="auth-bottom">
+          Bado huna akaunti?
+          <a href="register.html" class="auth-link-rg">Jiandikishe</a>
+        </p>
       </div>
-      <div class="group-input auth-pass-input last">
-        <label>Nenosiri</label>
-        <input type="password" id="inp-pass" class="password-input" placeholder="Weka nenosiri">
-        <a class="icon-eye password-addon" id="password-addon"></a>
+
+      <div class="footer-copy">
+        © 2026 Wakala Point. Haki zote zimehifadhiwa.
       </div>
-
-      <p id="err-msg" style="color:var(--wakala-red);font-size:13px;display:none;margin-bottom:12px;"></p>
-
-      <button class="tf-btn accent large" onclick="doLogin()">Ingia</button>
-
-      <div class="auth-line">au</div>
-
-      <button class="tf-btn outline large" style="width:100%;margin-bottom:16px;display:flex;align-items:center;justify-content:center;gap:10px;" onclick="doGoogleLogin()">
-        <svg width="18" height="18" viewBox="0 0 18 18" style="flex-shrink:0;">
-          <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64z"/>
-          <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
-          <path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.97H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/>
-          <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
-        </svg>
-        Ingia na Google
-      </button>
-
-      <div style="background:var(--wakala-primary-light);border-radius:14px;padding:16px;margin-bottom:16px;">
-        <p style="font-size:13px;font-weight:600;color:var(--wakala-primary);margin:0 0 8px;">Demo ya Haraka</p>
-        <button class="tf-btn outline" style="margin-bottom:8px;width:100%;border-radius:10px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="demoLogin('user')"><i class="icon-user-outline"></i> Ingia kama Demo</button>
-        
-      </div>
-
-      <p class="mb-9 fw-3 text-center">Bado huna akaunti? <a href="register.html" class="auth-link-rg">Jiandikishe</a></p>
     </div>
   </div>
 
@@ -70,48 +487,209 @@
   <script src="wakala.js"></script>
   <script src="password-addon.js"></script>
   <script src="main.js"></script>
+
   <script>
+    const loginBtn = document.getElementById('login-btn');
+    const googleBtn = document.getElementById('google-btn');
+    const emailInput = document.getElementById('inp-email');
+    const passInput = document.getElementById('inp-pass');
+    const rememberMeInput = document.getElementById('remember-me');
+    const errBox = document.getElementById('err-msg');
+    const successBox = document.getElementById('success-msg');
+
+    function showError(msg){
+      successBox.style.display = 'none';
+      errBox.textContent = msg;
+      errBox.style.display = 'block';
+    }
+
+    function showSuccess(msg){
+      errBox.style.display = 'none';
+      successBox.textContent = msg;
+      successBox.style.display = 'block';
+    }
+
+    function clearMessages(){
+      errBox.style.display = 'none';
+      successBox.style.display = 'none';
+      errBox.textContent = '';
+      successBox.textContent = '';
+    }
+
+    function setBtnLoading(btn, loading, text, isOutline = false){
+      if(!btn) return;
+      btn.disabled = loading;
+
+      if(loading){
+        btn.innerHTML = `
+          <span class="btn-loader">
+            <span class="btn-spinner ${isOutline ? 'dark' : ''}"></span>
+            ${text}
+          </span>
+        `;
+      } else {
+        btn.innerHTML = text;
+      }
+    }
+
+    function validateEmail(email){
+      return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+
+    function saveRememberedEmail(email){
+      if(rememberMeInput.checked){
+        localStorage.setItem('wp_remember_email', email);
+        localStorage.setItem('wp_remember_me', '1');
+      } else {
+        localStorage.removeItem('wp_remember_email');
+        localStorage.removeItem('wp_remember_me');
+      }
+    }
+
+    function loadRememberedEmail(){
+      const remembered = localStorage.getItem('wp_remember_email');
+      const remember = localStorage.getItem('wp_remember_me') === '1';
+      if(remember && remembered){
+        emailInput.value = remembered;
+        rememberMeInput.checked = true;
+      }
+    }
+
     async function doLogin() {
-      const email = document.getElementById('inp-email').value.trim();
-      const pass = document.getElementById('inp-pass').value;
-      const err = document.getElementById('err-msg');
-      const btn = document.querySelector('button.tf-btn.accent.large');
-      err.style.display = 'none';
-      if (!email || !pass) { err.textContent = 'Tafadhali jaza barua pepe na nenosiri.'; err.style.display='block'; return; }
-      if (btn) { btn.disabled = true; btn.textContent = 'Inaingia...'; }
+      clearMessages();
+
+      const email = emailInput.value.trim().toLowerCase();
+      const pass = passInput.value;
+
+      if (!email || !pass) {
+        showError('Tafadhali jaza barua pepe na nenosiri.');
+        return;
+      }
+
+      if (!validateEmail(email)) {
+        showError('Barua pepe si sahihi.');
+        return;
+      }
+
+      if (pass.length < 6) {
+        showError('Nenosiri lazima liwe angalau herufi 6.');
+        return;
+      }
+
+      setBtnLoading(loginBtn, true, 'Inaingia...');
+
       try {
         const found = await loginUser(email, pass);
+
+        saveRememberedEmail(email);
         saveUser(found);
+
         window.location.href = found.isAdmin ? 'admin.html' : 'index.html';
       } catch (e) {
-        err.textContent = e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.';
-        err.style.display = 'block';
-        if (btn) { btn.disabled = false; btn.textContent = 'Ingia'; }
+        showError(e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.');
+        setBtnLoading(loginBtn, false, 'Ingia');
       }
     }
+
     async function doGoogleLogin() {
-      const err = document.getElementById('err-msg');
-      err.style.display = 'none';
+      clearMessages();
+      setBtnLoading(googleBtn, true, 'Inaingia na Google...', true);
+
       try {
         const found = await loginWithGoogle();
+
+        if (found && found.email) {
+          if (rememberMeInput.checked) {
+            localStorage.setItem('wp_remember_email', found.email.toLowerCase());
+            localStorage.setItem('wp_remember_me', '1');
+          }
+        }
+
         saveUser(found);
         window.location.href = found.isAdmin ? 'admin.html' : 'index.html';
       } catch (e) {
-        err.textContent = e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.';
-        err.style.display = 'block';
+        showError(e.message || 'Hitilafu imetokea. Tafadhali jaribu tena.');
+        setBtnLoading(googleBtn, false, `
+          <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
+            <path fill="#4285F4" d="M17.64 9.2c0-.64-.06-1.25-.16-1.84H9v3.48h4.84c-.21 1.13-.85 2.09-1.81 2.73v2.27h2.92c1.71-1.57 2.69-3.88 2.69-6.64z"/>
+            <path fill="#34A853" d="M9 18c2.43 0 4.47-.8 5.96-2.18l-2.92-2.27c-.81.54-1.84.86-3.04.86-2.34 0-4.32-1.58-5.03-3.71H.96v2.33C2.44 15.98 5.48 18 9 18z"/>
+            <path fill="#FBBC05" d="M3.97 10.7c-.18-.54-.28-1.11-.28-1.7s.1-1.16.28-1.7V4.97H.96A8.99 8.99 0 0 0 0 9c0 1.45.35 2.83.96 4.03l3.01-2.33z"/>
+            <path fill="#EA4335" d="M9 3.58c1.32 0 2.5.45 3.44 1.35l2.58-2.58C13.46.89 11.43 0 9 0 5.48 0 2.44 2.02.96 4.97l3.01 2.33C4.68 5.16 6.66 3.58 9 3.58z"/>
+          </svg>
+          Ingia na Google
+        `);
       }
     }
+
+    async function forgotPassword(event){
+      event.preventDefault();
+      clearMessages();
+
+      const email = emailInput.value.trim().toLowerCase();
+
+      if(!email){
+        showError('Andika kwanza barua pepe yako ili tukutumie link ya kubadili nenosiri.');
+        emailInput.focus();
+        return;
+      }
+
+      if(!validateEmail(email)){
+        showError('Barua pepe si sahihi.');
+        emailInput.focus();
+        return;
+      }
+
+      try{
+        if(typeof sendPasswordReset === 'function'){
+          await sendPasswordReset(email);
+        }else{
+          throw new Error('Huduma ya kubadili nenosiri bado haijaunganishwa.');
+        }
+
+        showSuccess('Link ya kubadili nenosiri imetumwa kwenye barua pepe yako.');
+      }catch(e){
+        showError(e.message || 'Imeshindikana kutuma link ya kubadili nenosiri.');
+      }
+    }
+
     function demoLogin(role) {
       if (role === 'admin') {
-        const admin = { id: 'admin001', jina: 'Admin WakalaPoint', simu: '+255700000001', isAdmin: true };
+        const admin = {
+          id: 'admin001',
+          jina: 'Admin WakalaPoint',
+          simu: '+255700000001',
+          isAdmin: true
+        };
         saveUser(admin);
         window.location.href = 'admin.html';
       } else {
-        const user = { id: 'demo_' + Date.now(), jina: 'Mteja Demo', simu: '+255712345000', isAdmin: false };
+        const user = {
+          id: 'demo_' + Date.now(),
+          jina: 'Mteja Demo',
+          simu: '+255712345000',
+          isAdmin: false
+        };
         saveUser(user);
         window.location.href = 'index.html';
       }
     }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadRememberedEmail();
+
+      // if you want demo buttons visible during development:
+      // document.getElementById('demo-section').style.display = 'block';
+
+      emailInput.addEventListener('input', clearMessages);
+      passInput.addEventListener('input', clearMessages);
+    });
+
+    document.addEventListener('keydown', function(e){
+      if(e.key === 'Enter'){
+        doLogin();
+      }
+    });
   </script>
 </body>
 </html>
+```
