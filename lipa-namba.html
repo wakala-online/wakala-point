@@ -1,267 +1,199 @@
 <!DOCTYPE html>
 <html lang="sw">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
-  <title>Omba Lipa Namba — Wakala Point</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lipa Namba System</title>
 
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-
-  <style>
-    *{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:Inter;background:#F4F6F8;color:#111;min-height:100vh}
-
-    :root{
-      --green:#1A9E5C;
-      --green2:#127A44;
-      --bg:#F4F6F8;
-      --white:#fff;
-      --border:#E5E7EB;
-      --radius:14px;
-      --shadow:0 2px 12px rgba(0,0,0,.08);
-    }
-
-    .header{
-      position:fixed;top:0;left:0;right:0;height:60px;
-      background:#fff;display:flex;align-items:center;justify-content:center;
-      border-bottom:1px solid var(--border);
-      font-weight:700;
-    }
-
-    .wrap{max-width:520px;margin:0 auto;padding:80px 16px 40px}
-
-    .card{
-      background:#fff;border-radius:var(--radius);
-      box-shadow:var(--shadow);
-      padding:18px;margin-bottom:14px;
-    }
-
-    .title{font-size:12px;font-weight:700;color:#6B7280;margin-bottom:10px}
-
-    /* TYPE */
-    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    .type-btn{
-      border:1.5px solid var(--border);
-      padding:16px;border-radius:12px;
-      cursor:pointer;background:#fff;font-weight:600
-    }
-    .type-btn.active{border-color:var(--green);background:#EAF7F0}
-
-    /* OPTIONS */
-    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-    .chip{
-      border:1px solid var(--border);
-      padding:12px;border-radius:10px;
-      cursor:pointer;background:#fff;
-      display:flex;justify-content:space-between
-    }
-    .chip.active{border-color:var(--green);background:#EAF7F0}
-
-    .price{font-size:11px;font-weight:700;color:#127A44}
-
-    /* FORM */
-    input,select,textarea{
-      width:100%;padding:10px;border:1px solid var(--border);
-      border-radius:10px;font-family:Inter;font-size:14px
-    }
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-    label{font-size:12px;color:#6B7280;font-weight:600;margin-bottom:6px;display:block}
-    .group{margin-bottom:12px}
-
-    .btn{
-      width:100%;padding:14px;border:none;
-      background:var(--green);color:#fff;
-      font-weight:700;border-radius:12px;
-      cursor:pointer
-    }
-
-    .err{display:none;color:red;font-size:13px;margin-bottom:10px}
-    .badge{
-      display:none;
-      margin-top:10px;
-      padding:10px;
-      background:#EAF7F0;
-      border-radius:10px;
-      font-size:13px;
-      font-weight:600;
-      color:#127A44;
-    }
-
-    .hide{display:none}
-  </style>
+<style>
+body{font-family:Arial;background:#f4f6f8;margin:0;padding:20px}
+.card{background:#fff;padding:15px;border-radius:10px;margin-bottom:15px}
+button{padding:10px;margin:5px;border:none;border-radius:8px;cursor:pointer;background:#1A9E5C;color:#fff}
+input,select{width:100%;padding:10px;margin:5px 0;border:1px solid #ddd;border-radius:6px}
+.hidden{display:none}
+.error{color:red;font-size:13px}
+.ok{color:green;font-size:13px}
+</style>
 </head>
 
 <body>
 
-<div class="header">Omba Lipa Namba</div>
+<div class="card">
+<h3>Chagua Lipa Namba</h3>
 
-<div class="wrap">
-
-  <!-- STEP 1 -->
-  <div class="card" id="step1">
-    <div class="title">Hatua 1 — Chagua Aina</div>
-
-    <div class="type-grid">
-      <button class="type-btn" id="btn-net" onclick="show('net')">Lipa Namba</button>
-      <button class="type-btn" id="btn-till" onclick="show('till')">Till Namba</button>
-    </div>
-  </div>
-
-  <!-- NETWORK -->
-  <div class="card hide" id="netBox">
-    <div class="title">Chagua Mtandao</div>
-
-    <div class="grid">
-      <div class="chip" onclick="pick('Airtel',0,this)">Airtel <span class="price">Bure</span></div>
-      <div class="chip" onclick="pick('Tigo/Yas',0,this)">Tigo/Yas <span class="price">Bure</span></div>
-      <div class="chip" onclick="pick('Vodacom',0,this)">Vodacom <span class="price">Bure</span></div>
-      <div class="chip" onclick="pick('Azam Pesa',5000,this)">Azam <span class="price">5,000</span></div>
-      <div class="chip" onclick="pick('Halotel',5000,this)">Halotel <span class="price">5,000</span></div>
-    </div>
-
-    <div class="badge" id="badge"></div>
-  </div>
-
-  <!-- TILL -->
-  <div class="card hide" id="tillBox">
-    <div class="title">Chagua Till</div>
-
-    <div class="grid">
-      <div class="chip" onclick="pick('Till Airtel',3000,this)">Till Airtel <span class="price">3,000</span></div>
-      <div class="chip" onclick="pick('Till Halotel',10000,this)">Till Halotel <span class="price">10,000</span></div>
-      <div class="chip" onclick="pick('Till Vodacom',30000,this)">Till Vodacom <span class="price">30,000</span></div>
-      <div class="chip" onclick="pick('Azam Till',10000,this)">Azam <span class="price">10,000</span></div>
-    </div>
-
-    <div class="badge" id="badge2"></div>
-  </div>
-
-  <!-- FORM -->
-  <div class="card">
-    <div class="title">Taarifa za Mwombaji</div>
-
-    <div class="group">
-      <label>Jina</label>
-      <input id="jina">
-    </div>
-
-    <div class="row">
-      <div class="group">
-        <label>Simu</label>
-        <input id="simu">
-      </div>
-      <div class="group">
-        <label>Pili</label>
-        <input id="simu2">
-      </div>
-    </div>
-
-    <div class="group">
-      <label>Biashara</label>
-      <input id="biz">
-    </div>
-
-    <div class="err" id="err"></div>
-
-    <button class="btn" onclick="submit()">Tuma Ombi</button>
-  </div>
-
+<button onclick="selectType('airtel')">Airtel</button>
+<button onclick="selectType('tigo')">Tigo/Yas</button>
+<button onclick="selectType('vodacom')">Vodacom</button>
+<button onclick="selectType('azam')">Azam</button>
+<button onclick="selectType('halotel')">Halotel</button>
+<button onclick="selectType('till')">Till</button>
 </div>
 
-<script type="module" src="firebase-init.js"></script>
-<script src="wakala.js"></script>
+<div class="card" id="formBox"></div>
 
 <script>
-let type = "";
-let packageName = "";
-let price = 0;
+let type="";
+let otpCode="";
 
-function show(t){
-  type = t;
-
-  document.getElementById('netBox').classList.add('hide');
-  document.getElementById('tillBox').classList.add('hide');
-
-  document.getElementById('btn-net').classList.remove('active');
-  document.getElementById('btn-till').classList.remove('active');
-
-  if(t === "net"){
-    document.getElementById('netBox').classList.remove('hide');
-    document.getElementById('btn-net').classList.add('active');
-  }
-
-  if(t === "till"){
-    document.getElementById('tillBox').classList.remove('hide');
-    document.getElementById('btn-till').classList.add('active');
-  }
+function selectType(t){
+type=t;
+render();
 }
 
-function pick(name, p, el){
-  packageName = name;
-  price = p;
+function render(){
+let box=document.getElementById("formBox");
 
-  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-  el.classList.add('active');
-
-  const text = name + " - " + (p === 0 ? "Bure" : p.toLocaleString());
-
-  if(type === "net"){
-    const b = document.getElementById('badge');
-    b.style.display = "block";
-    b.innerText = text;
-  } else {
-    const b = document.getElementById('badge2');
-    b.style.display = "block";
-    b.innerText = text;
-  }
-
-  localStorage.setItem("package", name);
-  localStorage.setItem("price", p);
+if(type==="airtel"){
+box.innerHTML=`
+<h3>Airtel</h3>
+<input id="phone" placeholder="Namba ya simu">
+<input id="biz" placeholder="Jina la biashara (hiari)">
+<button onclick="submitAirtel()">Tuma</button>
+<div id="msg"></div>
+`;
 }
 
-async function submit(){
-
-  const jina = document.getElementById('jina').value.trim();
-  const simu = document.getElementById('simu').value.trim();
-  const biz = document.getElementById('biz').value.trim();
-
-  const err = document.getElementById('err');
-
-  if(!jina || !simu || !biz){
-    err.style.display = "block";
-    err.innerText = "Jaza taarifa zote muhimu";
-    return;
-  }
-
-  if(!packageName){
-    err.style.display = "block";
-    err.innerText = "Chagua package kwanza";
-    return;
-  }
-
-  err.style.display = "none";
-
-  const btn = document.querySelector('.btn');
-  btn.disabled = true;
-  btn.innerText = "Inatuma...";
-
-  const data = {
-    jina, simu, biz,
-    package: packageName,
-    price: price
-  };
-
-  try{
-    const res = await submitRequest("lipa-namba", data);
-    window.location.href = "ombi-detail.html?id=" + res.id;
-  } catch(e){
-    err.style.display = "block";
-    err.innerText = "Hitilafu imejitokeza";
-    btn.disabled = false;
-    btn.innerText = "Tuma Ombi";
-  }
+if(type==="tigo"){
+box.innerHTML=`
+<h3>Tigo/Yas OTP</h3>
+<input id="phone" placeholder="Namba ya simu">
+<button onclick="sendOTP()">Tuma OTP</button>
+<div id="otpBox"></div>
+<div id="msg"></div>
+`;
 }
+
+if(type==="vodacom"){
+box.innerHTML=`
+<h3>Vodacom</h3>
+<input id="name1" placeholder="Jina 1">
+<input id="name2" placeholder="Jina 2">
+<input id="name3" placeholder="Jina 3">
+<input id="phone" placeholder="Simu">
+<input id="nida" placeholder="NIDA">
+<input type="file">
+<button onclick="submitVodacom()">Tuma</button>
+<div id="msg"></div>
+`;
+}
+
+if(type==="azam"){
+box.innerHTML=`
+<h3>Azam Pesa</h3>
+<input id="acc" placeholder="Account number">
+<input id="nida" placeholder="NIDA">
+<input id="biz" placeholder="Biashara (hiari)">
+<input type="file">
+<button onclick="submitAzam()">Tuma</button>
+<div id="msg"></div>
+`;
+}
+
+if(type==="halotel"){
+box.innerHTML=`
+<h3>Halotel</h3>
+<input id="phone" placeholder="Namba ya simu">
+<input id="nida" placeholder="NIDA">
+<button onclick="submitHalotel()">Tuma</button>
+<div id="msg"></div>
+`;
+}
+
+if(type==="till"){
+box.innerHTML=`
+<h3>Till</h3>
+
+<select id="tillType" onchange="tillRender()">
+<option value="">Chagua</option>
+<option value="airtel">Till Airtel</option>
+<option value="halotel">Till Halotel</option>
+<option value="vodacom">Till Vodacom</option>
+</select>
+
+<div id="tillBox"></div>
+`;
+}
+}
+
+function tillRender(){
+let t=document.getElementById("tillType").value;
+let box=document.getElementById("tillBox");
+
+if(t==="airtel"){
+box.innerHTML=`
+<input placeholder="Namba ya simu">
+<p>Wasiliana na TL 0698232313</p>
+<button onclick="ok()">Tuma</button>
+`;
+}
+
+if(t==="halotel"){
+box.innerHTML=`
+<input placeholder="Namba ya simu">
+<select id="flot">
+<option>Flot 100,000?</option>
+<option>YES</option>
+<option>NO</option>
+</select>
+<button onclick="checkFlot()">Endelea</button>
+`;
+}
+
+if(t==="vodacom"){
+box.innerHTML=`
+<input placeholder="Namba ya simu">
+<select id="scanner">
+<option>Scanner?</option>
+<option>YES</option>
+<option>NO</option>
+</select>
+<button onclick="checkScanner()">Endelea</button>
+`;
+}
+}
+
+/* ================= OTP ================= */
+function sendOTP(){
+otpCode=Math.floor(100000+Math.random()*900000);
+document.getElementById("otpBox").innerHTML=`
+<input id="otpInput" placeholder="Weka OTP">
+<button onclick="verifyOTP()">Thibitisha</button>
+`;
+alert("OTP: "+otpCode);
+}
+
+function verifyOTP(){
+let input=document.getElementById("otpInput").value;
+if(input==otpCode){
+document.getElementById("msg").innerHTML="<span class='ok'>OTP Verified ✔</span>";
+}else{
+document.getElementById("msg").innerHTML="<span class='error'>OTP si sahihi</span>";
+}
+}
+
+/* ================= RULES ================= */
+function checkFlot(){
+if(document.getElementById("flot").value!=="YES"){
+alert("Flot ni lazima");
+return;
+}
+alert("OK → TL 0698232313");
+}
+
+function checkScanner(){
+if(document.getElementById("scanner").value!=="YES"){
+alert("Scanner lazima uwe nayo");
+return;
+}
+alert("OK → TL 0698232313");
+}
+
+/* ================= SUBMIT ================= */
+function submitAirtel(){alert("Airtel submitted")}
+function submitVodacom(){alert("Vodacom submitted")}
+function submitAzam(){alert("Azam submitted")}
+function submitHalotel(){alert("Halotel submitted")}
+function ok(){alert("Submitted")}
 </script>
 
 </body>
