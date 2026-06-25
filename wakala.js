@@ -1,745 +1,398 @@
-/* =========================================================
-   WAKALA POINT — CORE APP / DATA LAYER
-   Inafanya kazi pamoja na firebase-init.js
-   - Auth
-   - Users
-   - Requests
-   - Admin guard
-   - Admin PIN
-   - Local/session helpers
-   ========================================================= */
+/* ===== WAKALA POINT — App Logic (Firebase Realtime Database) ===== */
 
-(function () {
-  "use strict";
+// localStorage is still used to cache the *current session* only.
+// All real data (users + requests) lives in Firebase Realtime Database.
+const KEYS = {
+  USER: 'wp_user',
+};
 
-  /* =========================================================
-     CONFIG
-     ========================================================= */
-  const LS_USER_KEY = "wp_user";
-  const LS_ADMIN_USER_KEY = "wp_admin_user";
-  const DEFAULT_AVATAR = "";
+/* ---------- Wait for firebase-init.js (loaded as a <script type="module">) ---------- */
+function wpFirebaseReady() {
+  if (window.__wpFirebase) return Promise.resolve(window.__wpFirebase);
+  return new Promise((resolve) => {
+    window.addEventListener('wp-firebase-ready', () => resolve(window.__wpFirebase), { once: true });
+  });
+}
 
-  /* =========================================================
-     INTERNAL HELPERS
-     ========================================================= */
-  function ensureFirebase() {
-    if (!window.__wpFirebase) {
-      throw new Error("Firebase haijapakiwa. Hakikisha firebase-init.js imewekwa kabla ya wakala.js");
-    }
-    return window.__wpFirebase;
-  }
-
-  async function fbReady() {
-    if (typeof window.wpFirebaseReady === "function") {
-      return await window.wpFirebaseReady();
-    }
-    return ensureFirebase();
-  }
-
-  function normalizePhone(phone = "") {
-    let p = String(phone).trim();
-    if (!p) return "";
-    p = p.replace(/\s+/g, "");
-
-    // +2557..., 2557..., 07...
-    if (p.startsWith("+255")) return p;
-    if (p.startsWith("255")) return "+" + p;
-    if (p.startsWith("0")) return "+255" + p.slice(1);
-    return p;
-  }
-
-  function nowIso() {
-    return new Date().toISOString();
-  }
-
-  function safeText(v, fallback = "") {
-    return v == null ? fallback : String(v);
-  }
-
-  function cleanObject(obj = {}) {
-    const out = {};
-    Object.keys(obj).forEach((k) => {
-      const val = obj[k];
-      if (val !== undefined) out[k] = val;
+// Wait for Firebase Auth to finish restoring the session on page load
+// (auth.currentUser is null for a brief moment after a refresh, until
+// Firebase re-hydrates it from its own storage). Resolves with the
+// Firebase Auth user, or null if nobody is signed in.
+function wpAuthReady() {
+  return wpFirebaseReady().then((fb) => new Promise((resolve) => {
+    const unsub = fb.onAuthStateChanged(fb.auth, (fbUser) => {
+      unsub();
+      resolve(fbUser);
     });
-    return out;
+  }));
+}
+
+/* ---------- Helpers ---------- */
+
+// Generate unique ID (used for request display IDs)
+function genId() {
+  return 'WP' + Date.now().toString(36).toUpperCase() + Math.random().toString(36).substr(2, 4).toUpperCase();
+}
+
+// Format date in Swahili
+function formatDate(dateStr) {
+  const d = new Date(dateStr);
+  const months = ['Jan', 'Feb', 'Mac', 'Apr', 'Mei', 'Jun', 'Jul', 'Ago', 'Sep', 'Okt', 'Nov', 'Des'];
+  return `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+}
+
+/* ---------- Session (synchronous, cached locally) ---------- */
+
+// Get current user (synchronous — reads cached session)
+function getUser() {
+  return JSON.parse(localStorage.getItem(KEYS.USER) || 'null');
+}
+
+// Save user session locally (cache only; source of truth is RTDB)
+function saveUser(user) {
+  localStorage.setItem(KEYS.USER, JSON.stringify(user));
+}
+
+function clearUser() {
+  localStorage.removeItem(KEYS.USER);
+  localStorage.removeItem('wakala_user');
+}
+
+/* ---------- Auth: Firebase Authentication (email/password + Google) ---------- */
+/*
+  Phone Auth requires Firebase's paid Blaze plan, so sign-in uses:
+   - Email + password (Firebase Authentication)
+   - Continue with Google (Firebase Authentication)
+  "Namba ya Simu" is kept as a profile field in Realtime Database (users/{uid}),
+  not as the sign-in credential.
+*/
+
+// Read or create the RTDB profile for a signed-in Firebase Auth user.
+async function syncUserProfile(fbUser, extra) {
+  const fb = await wpFirebaseReady();
+  const userRef = fb.ref(fb.db, `users/${fbUser.uid}`);
+  const snap = await fb.get(userRef);
+  if (snap.exists()) {
+    // Existing profile — return as-is (don't overwrite jina/simu/mkoa on every login).
+    return { id: fbUser.uid, ...snap.val() };
   }
+  // First time we see this Firebase Auth user — create their profile.
+  const profile = {
+    id: fbUser.uid,
+    jina: (extra && extra.jina) || fbUser.displayName || 'Mteja',
+    simu: (extra && extra.simu) || '',
+    mkoa: (extra && extra.mkoa) || '',
+    email: fbUser.email || '',
+    isAdmin: false,
+    createdAt: new Date().toISOString(),
+  };
+  await fb.set(userRef, profile);
+  return profile;
+}
 
-  function randomId(prefix = "WP") {
-    return `${prefix}-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+// Register a new user with email + password. Returns the user profile object.
+async function registerUser({ jina, simu, mkoa, email, pass }) {
+  const fb = await wpFirebaseReady();
+  let cred;
+  try {
+    cred = await fb.createUserWithEmailAndPassword(fb.auth, email, pass);
+  } catch (e) {
+    throw new Error(authErrorMessage(e));
   }
-
-  function toArrayFromSnapshot(snapshot) {
-    const arr = [];
-    if (!snapshot || !snapshot.exists()) return arr;
-    snapshot.forEach((childSnap) => {
-      arr.push({
-        _key: childSnap.key,
-        ...(childSnap.val() || {})
-      });
-    });
-    return arr;
+  if (jina) {
+    try { await fb.updateProfile(cred.user, { displayName: jina }); } catch (e) { /* non-fatal */ }
   }
+  return syncUserProfile(cred.user, { jina, simu, mkoa });
+}
 
-  function sortByDateDesc(list, dateField = "tarehe") {
-    return [...list].sort((a, b) => {
-      const da = new Date(a?.[dateField] || 0).getTime();
-      const db = new Date(b?.[dateField] || 0).getTime();
-      return db - da;
-    });
+// Log in with email + password. Returns the user profile object.
+async function loginUser(email, pass) {
+  const fb = await wpFirebaseReady();
+  let cred;
+  try {
+    cred = await fb.signInWithEmailAndPassword(fb.auth, email, pass);
+  } catch (e) {
+    throw new Error(authErrorMessage(e));
   }
+  return syncUserProfile(cred.user);
+}
 
-  function mapFirebaseAuthError(err) {
-    const code = err?.code || "";
-    switch (code) {
-      case "auth/invalid-email":
-        return "Barua pepe si sahihi.";
-      case "auth/user-not-found":
-      case "auth/wrong-password":
-      case "auth/invalid-credential":
-        return "Barua pepe au nenosiri si sahihi.";
-      case "auth/email-already-in-use":
-        return "Barua pepe hii tayari imesajiliwa.";
-      case "auth/weak-password":
-        return "Nenosiri ni dhaifu. Tumia angalau herufi/simu 6 au zaidi.";
-      case "auth/popup-closed-by-user":
-        return "Dirisha la Google limefungwa kabla ya kumaliza kuingia.";
-      case "auth/cancelled-popup-request":
-        return "Ombi la kuingia limekatishwa.";
-      case "auth/network-request-failed":
-        return "Tatizo la mtandao. Tafadhali jaribu tena.";
-      case "auth/too-many-requests":
-        return "Majaribio mengi yameshindwa. Jaribu tena baadaye.";
-      default:
-        return err?.message || "Hitilafu imetokea. Tafadhali jaribu tena.";
-    }
+// Continue with Google. Returns the user profile object.
+async function loginWithGoogle() {
+  const fb = await wpFirebaseReady();
+  let cred;
+  try {
+    cred = await fb.signInWithPopup(fb.auth, fb.googleProvider);
+  } catch (e) {
+    throw new Error(authErrorMessage(e));
   }
+  return syncUserProfile(cred.user);
+}
 
-  /* =========================================================
-     HASH / SECURITY HELPERS
-     ========================================================= */
-  async function sha256Hex(text) {
-    const msgUint8 = new TextEncoder().encode(String(text));
-    const hashBuffer = await crypto.subtle.digest("SHA-256", msgUint8);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
-  }
+// Translate common Firebase Auth error codes into Swahili messages.
+function authErrorMessage(e) {
+  const code = e && e.code;
+  const map = {
+    'auth/email-already-in-use': 'Barua pepe hii tayari imesajiliwa. Tafadhali ingia.',
+    'auth/invalid-email': 'Barua pepe si sahihi.',
+    'auth/weak-password': 'Nenosiri ni hafifu. Tumia angalau herufi 6.',
+    'auth/user-not-found': 'Akaunti haipo. Tafadhali jiandikishe kwanza.',
+    'auth/wrong-password': 'Barua pepe au nenosiri si sahihi.',
+    'auth/invalid-credential': 'Barua pepe au nenosiri si sahihi.',
+    'auth/too-many-requests': 'Majaribio mengi yameshindwa. Tafadhali subiri kidogo kisha jaribu tena.',
+    'auth/popup-closed-by-user': 'Umefunga dirisha la Google kabla ya kukamilisha.',
+    'auth/network-request-failed': 'Hitilafu ya mtandao. Hakikisha intaneti yako inafanya kazi.',
+  };
+  return map[code] || 'Hitilafu imetokea. Tafadhali jaribu tena.';
+}
 
-  /* =========================================================
-     STORAGE HELPERS
-     ========================================================= */
-  function saveUser(user) {
-    if (!user) return;
-    try {
-      localStorage.setItem(LS_USER_KEY, JSON.stringify(user));
-      if (user.isAdmin) {
-        localStorage.setItem(LS_ADMIN_USER_KEY, JSON.stringify(user));
-      }
-    } catch (_) {}
-  }
+/* ---------- Admin PIN (Realtime Database, scoped to the admin's own uid) ---------- */
+// The PIN itself is never stored — only its SHA-256 hash, under
+// users/{uid}/adminPinHash. RTDB rules only allow an account that is
+// ALREADY isAdmin === true to read or write this field for itself.
 
-  function getSavedUser() {
-    try {
-      const raw = localStorage.getItem(LS_USER_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (_) {
-      return null;
-    }
-  }
+async function sha256Hex(text) {
+  const enc = new TextEncoder().encode(text);
+  const buf = await crypto.subtle.digest('SHA-256', enc);
+  return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
 
-  function getSavedAdmin() {
-    try {
-      const raw = localStorage.getItem(LS_ADMIN_USER_KEY);
-      return raw ? JSON.parse(raw) : null;
-    } catch (_) {
-      return null;
-    }
-  }
+// Returns the current admin's stored PIN hash, or null if never set.
+async function getAdminPinHash(uid) {
+  const fb = await wpFirebaseReady();
+  const snap = await fb.get(fb.ref(fb.db, `users/${uid}/adminPinHash`));
+  return snap.exists() ? snap.val() : null;
+}
 
-  function clearSavedUser() {
-    try {
-      localStorage.removeItem(LS_USER_KEY);
-      localStorage.removeItem(LS_ADMIN_USER_KEY);
-      sessionStorage.removeItem("wp_admin_unlocked");
-    } catch (_) {}
-  }
+async function setAdminPinHash(uid, hash) {
+  const fb = await wpFirebaseReady();
+  await fb.set(fb.ref(fb.db, `users/${uid}/adminPinHash`), hash);
+}
 
-  function getCurrentUser() {
-    return getSavedUser();
-  }
+/* ---------- Requests (Realtime Database) ---------- */
 
-  /* =========================================================
-     USERS DB HELPERS
-     DB Structure (recommended):
-     users/{uid} = {
-       uid, email, jina, simu, mkoa, isAdmin, blocked, createdAt, updatedAt
-     }
-     ========================================================= */
-  async function getUserByUid(uid) {
-    if (!uid) return null;
-    const fb = await fbReady();
-    const snap = await fb.get(fb.ref(fb.db, `users/${uid}`));
-    return snap.exists() ? { uid, ...(snap.val() || {}) } : null;
-  }
+// Get all requests (admin use) — returns an array, newest first
+async function getRequests() {
+  const fb = await wpFirebaseReady();
+  const snap = await fb.get(fb.ref(fb.db, 'requests'));
+  if (!snap.exists()) return [];
+  const obj = snap.val();
+  return Object.keys(obj)
+    .map((key) => ({ ...obj[key], _key: key }))
+    .sort((a, b) => new Date(b.tarehe) - new Date(a.tarehe));
+}
 
-  async function createOrUpdateUserProfile(uid, data = {}) {
-    if (!uid) throw new Error("UID haipo");
-    const fb = await fbReady();
-
-    const userRef = fb.ref(fb.db, `users/${uid}`);
-    const existingSnap = await fb.get(userRef);
-    const existing = existingSnap.exists() ? existingSnap.val() : null;
-
-    const payload = cleanObject({
-      uid,
-      email: safeText(data.email, existing?.email || ""),
-      jina: safeText(data.jina, existing?.jina || ""),
-      simu: normalizePhone(data.simu || existing?.simu || ""),
-      mkoa: safeText(data.mkoa, existing?.mkoa || ""),
-      avatar: safeText(data.avatar, existing?.avatar || DEFAULT_AVATAR),
-      isAdmin: data.isAdmin === true || existing?.isAdmin === true,
-      blocked: data.blocked === true || existing?.blocked === true,
-      createdAt: existing?.createdAt || nowIso(),
-      updatedAt: nowIso()
-    });
-
-    await fb.set(userRef, payload);
-    return payload;
-  }
-
-  async function setUserBlocked(uid, blocked = true) {
-    if (!uid) throw new Error("UID ya mtumiaji haipo");
-    const fb = await fbReady();
-    await fb.update(fb.ref(fb.db, `users/${uid}`), {
-      blocked: !!blocked,
-      updatedAt: nowIso()
-    });
-    return true;
-  }
-
-  async function getUsers() {
-    const fb = await fbReady();
-    const snap = await fb.get(fb.ref(fb.db, "users"));
-    if (!snap.exists()) return [];
-    const list = [];
-    snap.forEach((childSnap) => {
-      list.push({
-        uid: childSnap.key,
-        ...(childSnap.val() || {})
-      });
-    });
-    // Admins juu, then recent
-    return list.sort((a, b) => {
-      if ((a.isAdmin ? 1 : 0) !== (b.isAdmin ? 1 : 0)) return (b.isAdmin ? 1 : 0) - (a.isAdmin ? 1 : 0);
-      return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
-    });
-  }
-
-  /* =========================================================
-     AUTH
-     ========================================================= */
-  async function registerUser(payload = {}) {
-    const fb = await fbReady();
-
-    const email = String(payload.email || "").trim();
-    const password = String(payload.password || "");
-    const jina = String(payload.jina || "").trim();
-    const simu = normalizePhone(payload.simu || "");
-    const mkoa = String(payload.mkoa || "").trim();
-
-    if (!email || !password || !jina) {
-      throw new Error("Jaza jina, barua pepe na nenosiri.");
-    }
-
-    try {
-      const cred = await fb.createUserWithEmailAndPassword(fb.auth, email, password);
-
-      if (jina) {
-        try {
-          await fb.updateProfile(cred.user, { displayName: jina });
-        } catch (_) {}
-      }
-
-      const profile = await createOrUpdateUserProfile(cred.user.uid, {
-        email,
-        jina,
-        simu,
-        mkoa,
-        isAdmin: false,
-        blocked: false
-      });
-
-      saveUser(profile);
-      return profile;
-    } catch (err) {
-      throw new Error(mapFirebaseAuthError(err));
-    }
-  }
-
-  async function loginUser(email, password) {
-    const fb = await fbReady();
-
-    if (!email || !password) {
-      throw new Error("Weka barua pepe na nenosiri.");
-    }
-
-    try {
-      const cred = await fb.signInWithEmailAndPassword(fb.auth, String(email).trim(), String(password));
-      let profile = await getUserByUid(cred.user.uid);
-
-      // Ikiwa profile haipo kabisa DB, itengeneze kwa msingi wa auth profile
-      if (!profile) {
-        profile = await createOrUpdateUserProfile(cred.user.uid, {
-          email: cred.user.email || email,
-          jina: cred.user.displayName || "Mtumiaji",
-          simu: "",
-          mkoa: "",
-          isAdmin: false,
-          blocked: false
-        });
-      }
-
-      if (profile.blocked === true) {
-        await fb.signOut(fb.auth);
-        clearSavedUser();
-        throw new Error("Akaunti yako imezuiwa. Wasiliana na msimamizi.");
-      }
-
-      saveUser(profile);
-      return profile;
-    } catch (err) {
-      throw new Error(mapFirebaseAuthError(err));
-    }
-  }
-
-  async function loginWithGoogle() {
-    const fb = await fbReady();
-
-    try {
-      const result = await fb.signInWithPopup(fb.auth, fb.googleProvider);
-      const gUser = result.user;
-
-      let profile = await getUserByUid(gUser.uid);
-
-      if (!profile) {
-        profile = await createOrUpdateUserProfile(gUser.uid, {
-          email: gUser.email || "",
-          jina: gUser.displayName || "Mtumiaji",
-          simu: "",
-          mkoa: "",
-          avatar: gUser.photoURL || "",
-          isAdmin: false,
-          blocked: false
-        });
-      } else {
-        // refresh basic profile
-        profile = await createOrUpdateUserProfile(gUser.uid, {
-          ...profile,
-          email: gUser.email || profile.email || "",
-          jina: gUser.displayName || profile.jina || "Mtumiaji",
-          avatar: gUser.photoURL || profile.avatar || ""
-        });
-      }
-
-      if (profile.blocked === true) {
-        await fb.signOut(fb.auth);
-        clearSavedUser();
-        throw new Error("Akaunti yako imezuiwa. Wasiliana na msimamizi.");
-      }
-
-      saveUser(profile);
-      return profile;
-    } catch (err) {
-      throw new Error(mapFirebaseAuthError(err));
-    }
-  }
-
-  async function sendResetPassword(email) {
-    const fb = await fbReady();
-    const cleanEmail = String(email || "").trim();
-    if (!cleanEmail) throw new Error("Weka barua pepe kwanza.");
-
-    try {
-      await fb.sendPasswordResetEmail(fb.auth, cleanEmail);
-      return true;
-    } catch (err) {
-      throw new Error(mapFirebaseAuthError(err));
-    }
-  }
-
-  async function logout() {
-    const fb = await fbReady();
-    try {
-      await fb.signOut(fb.auth);
-    } catch (_) {}
-    clearSavedUser();
-    window.location.href = "login.html";
-  }
-
-  /* =========================================================
-     ADMIN GUARD
-     ========================================================= */
-  async function requireAuth(redirectTo = "login.html") {
-    const fb = await fbReady();
-
-    // 1) if local saved user exists, use it
-    let user = getSavedUser();
-
-    // 2) if no local, try auth state
-    if (!user) {
-      const authUser = typeof window.wpWaitForAuth === "function"
-        ? await window.wpWaitForAuth()
-        : fb.auth.currentUser;
-
-      if (!authUser) {
-        window.location.href = redirectTo;
-        return false;
-      }
-
-      const profile = await getUserByUid(authUser.uid);
-      if (!profile) {
-        window.location.href = redirectTo;
-        return false;
-      }
-
-      if (profile.blocked === true) {
-        clearSavedUser();
-        try { await fb.signOut(fb.auth); } catch (_) {}
-        window.location.href = redirectTo;
-        return false;
-      }
-
-      saveUser(profile);
-      user = profile;
-    }
-
-    return user;
-  }
-
-  async function requireAdmin(redirectTo = "login.html") {
-    const user = await requireAuth(redirectTo);
-    if (!user) return false;
-
-    if (user.isAdmin !== true) {
-      alert("Huna ruhusa ya kuingia Admin Panel.");
-      window.location.href = "index.html";
-      return false;
-    }
-    return true;
-  }
-
-  /* =========================================================
-     REQUESTS
-     DB Structure (recommended):
-     requests/{autoKey} = {
-       id, type, status, tarehe,
-       userUid, userName, userPhone,
-       adminNote,
-       details: { ... }
-     }
-     ========================================================= */
-
-  function normalizeRequestPayload(payload = {}) {
-    const details = payload.details || {};
-
-    return cleanObject({
-      id: payload.id || randomId("REQ"),
-      type: payload.type || "lipa-namba", // lipa-namba / till-uwakala / etc
-      status: payload.status || "pending", // pending / processing / approved / rejected
-      tarehe: payload.tarehe || nowIso(),
-
-      userUid: payload.userUid || "",
-      userName: payload.userName || "",
-      userPhone: normalizePhone(payload.userPhone || ""),
-      adminNote: payload.adminNote || "",
-
-      details: cleanObject({
-        jina: details.jina || payload.userName || "",
-        simu: normalizePhone(details.simu || payload.userPhone || ""),
-        aina_id: details.aina_id || "",
-        namba_id: details.namba_id || "",
-        jina_biashara: details.jina_biashara || "",
-        aina_biashara: details.aina_biashara || "",
-        namba_ya_biashara: details.namba_ya_biashara || "",
-        mtandao: details.mtandao || "",
-        aina_wakala: details.aina_wakala || "",
-        mkoa: details.mkoa || "",
-        wilaya: details.wilaya || "",
-        kata: details.kata || "",
-        umbali_wakala: details.umbali_wakala || "",
-        mtaji: details.mtaji || "",
-        mahali: details.mahali || "",
-        umri: details.umri || "",
-        historia_wakala: details.historia_wakala || "",
-        maelezo: details.maelezo || "",
-        eneo_maelezo: details.eneo_maelezo || ""
-      }),
-
-      createdAt: payload.createdAt || nowIso(),
-      updatedAt: nowIso()
-    });
-  }
-
-  async function createRequest(payload = {}) {
-    const fb = await fbReady();
-    const normalized = normalizeRequestPayload(payload);
-
-    const reqRef = fb.push(fb.ref(fb.db, "requests"));
-    await fb.set(reqRef, normalized);
-
-    return {
-      _key: reqRef.key,
-      ...normalized
-    };
-  }
-
-  async function getRequests() {
-    const fb = await fbReady();
-    const snap = await fb.get(fb.ref(fb.db, "requests"));
-    const list = toArrayFromSnapshot(snap);
-    return sortByDateDesc(list, "tarehe");
-  }
-
-  async function getRequestByKey(key) {
-    if (!key) return null;
-    const fb = await fbReady();
-    const snap = await fb.get(fb.ref(fb.db, `requests/${key}`));
-    return snap.exists() ? { _key: key, ...(snap.val() || {}) } : null;
-  }
-
-  async function getRequestById(requestId) {
+// Get a single request by its display id (e.g. "WPABC123").
+// Checks the current user's own requests first (works for regular users,
+// since RTDB rules only allow a non-admin to read requests matching their
+// own userId). Falls back to the full admin list if not found there.
+async function getRequestById(id) {
+  const mine = await getUserRequests();
+  const found = mine.find((r) => r.id === id);
+  if (found) return found;
+  try {
     const all = await getRequests();
-    return all.find((r) => r.id === requestId) || null;
+    return all.find((r) => r.id === id) || null;
+  } catch (e) {
+    // Not an admin and not their own request — no access.
+    return null;
   }
+}
 
-  async function getRequestsByUser(uid) {
-    if (!uid) return [];
-    const all = await getRequests();
-    return all.filter((r) => r.userUid === uid);
+// Get current user's requests — reads from userRequests/ for the push-key
+// index, then fetches the live record from requests/ to get the latest
+// admin-updated status/note (admin only writes to requests/, not userRequests/).
+async function getUserRequests() {
+  const fb = await wpFirebaseReady();
+  const fbUser = fb.auth.currentUser;
+  if (!fbUser) return [];
+  const snap = await fb.get(fb.ref(fb.db, `userRequests/${fbUser.uid}`));
+  if (!snap.exists()) return [];
+  const obj = snap.val();
+  const keys = Object.keys(obj);
+  // Fetch live records from requests/ in parallel to get latest status
+  const results = await Promise.all(
+    keys.map(async (key) => {
+      try {
+        const liveSnap = await fb.get(fb.ref(fb.db, `requests/${key}`));
+        if (liveSnap.exists()) return { ...liveSnap.val(), _key: key };
+      } catch (e) { /* fall back to cached copy */ }
+      return { ...obj[key], _key: key };
+    })
+  );
+  return results
+    .filter(Boolean)
+    .sort((a, b) => new Date(b.tarehe) - new Date(a.tarehe));
+}
+
+// Submit a new request — writes to Realtime Database
+async function submitRequest(type, details) {
+  const user = getUser();
+  if (!user) { window.location.href = 'login.html'; return; }
+  const fb = await wpFirebaseReady();
+  const fbUser = fb.auth.currentUser;
+  if (!fbUser) { window.location.href = 'login.html'; return; }
+  const newRef = fb.push(fb.ref(fb.db, 'requests'));
+  const nowIso = new Date().toISOString();
+  const newReq = {
+    id: genId(),
+    userId: fbUser.uid,
+    userName: user.jina,
+    userPhone: user.simu,
+    type,
+    details,
+    status: 'pending',
+    tarehe: nowIso,
+    updatedAt: nowIso,
+    adminNote: '',
+  };
+  await fb.update(fb.ref(fb.db), {
+    [`requests/${newRef.key}`]: newReq,
+    [`userRequests/${fbUser.uid}/${newRef.key}`]: newReq,
+  });
+  return { ...newReq, _key: newRef.key };
+}
+
+// Admin: update a request's status + note. Needs the Firebase push key (_key) of the request.
+// Admin: update a request's status + note.
+// Only writes to requests/ — per DB rules, userRequests.$uid .write only
+// allows the owner (auth.uid === $uid), not admin. Authoritative status
+// lives in requests/ which admin CAN write per the rules.
+async function updateRequest(_key, { status, adminNote }) {
+  const fb = await wpFirebaseReady();
+  const updatedAt = new Date().toISOString();
+  await fb.update(fb.ref(fb.db), {
+    [`requests/${_key}/status`]: status,
+    [`requests/${_key}/adminNote`]: adminNote,
+    [`requests/${_key}/updatedAt`]: updatedAt,
+  });
+}
+
+/* ---------- Labels ---------- */
+
+// Status label in Swahili
+function statusLabel(status) {
+  const map = { pending: 'Inasubiri', approved: 'Imekubaliwa', rejected: 'Imekataliwa', processing: 'Inashughulikiwa' };
+  return map[status] || status;
+}
+
+// Status badge HTML
+function statusBadge(status) {
+  return `<span class="badge-${status}">${statusLabel(status)}</span>`;
+}
+
+// Service type label
+function serviceLabel(type) {
+  const map = { 'lipa-namba': 'Lipa Namba', 'till-uwakala': 'Till ya Uwakala' };
+  return map[type] || type;
+}
+
+/* ---------- Guards ---------- */
+
+// Auth guard — redirect to login if not logged in, or show blocked screen if blocked.
+// Waits for Firebase Auth to finish restoring the session before deciding,
+// so a page refresh doesn't briefly look "logged out".
+async function requireAuth() {
+  const fbUser = await wpAuthReady();
+  if (!fbUser) {
+    clearUser();
+    window.location.href = 'login.html';
+    return false;
   }
-
-  async function updateRequest(key, patch = {}) {
-    if (!key) throw new Error("Request key haipo");
-    const fb = await fbReady();
-
-    const allowed = cleanObject({
-      status: patch.status,
-      adminNote: patch.adminNote,
-      type: patch.type,
-      userName: patch.userName,
-      userPhone: patch.userPhone ? normalizePhone(patch.userPhone) : undefined,
-      details: patch.details
-    });
-
-    allowed.updatedAt = nowIso();
-
-    await fb.update(fb.ref(fb.db, `requests/${key}`), allowed);
-    return true;
+  // Check if account is blocked by admin
+  const fb = await wpFirebaseReady();
+  const blockedSnap = await fb.get(fb.ref(fb.db, `users/${fbUser.uid}/blocked`));
+  if (blockedSnap.exists() && blockedSnap.val() === true) {
+    // Show block screen instead of redirecting to keep context
+    document.body.innerHTML = `
+      <div style="min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px;background:var(--wakala-surface,#f5f5f5);text-align:center;">
+        <div style="width:72px;height:72px;border-radius:20px;background:#FEE2E2;display:flex;align-items:center;justify-content:center;margin:0 auto 20px;">
+          <i class="icon-secure1" style="font-size:32px;color:#DC2626;"></i>
+        </div>
+        <h2 style="font-size:20px;font-weight:800;color:#111;margin:0 0 10px;">Akaunti Imezuiwa</h2>
+        <p style="font-size:14px;color:#666;margin:0 0 28px;max-width:300px;">Akaunti yako imezuiwa na msimamizi. Tafadhali wasiliana na msaada kwa maelezo zaidi.</p>
+        <button onclick="logout()" style="background:#DC2626;color:#fff;border:none;border-radius:12px;padding:12px 28px;font-size:14px;font-weight:700;cursor:pointer;">Toka</button>
+      </div>`;
+    return false;
   }
+  return true;
+}
 
-  async function deleteRequest(key) {
-    if (!key) throw new Error("Request key haipo");
-    const fb = await fbReady();
-    await fb.remove(fb.ref(fb.db, `requests/${key}`));
-    return true;
+// Admin guard — verifies admin status LIVE against Realtime Database,
+// using the signed-in Firebase Auth user's uid. Never trusts the
+// localStorage cache, since that's fully editable by anyone with devtools.
+async function requireAdmin() {
+  const fbUser = await wpAuthReady();
+  if (!fbUser) {
+    clearUser();
+    window.location.href = 'login.html';
+    return false;
   }
-
-  /* =========================================================
-     ADMIN PIN
-     DB Structure:
-     adminPins/{uid} = {
-       pinHash: "...",
-       updatedAt: "..."
-     }
-     ========================================================= */
-  async function getAdminPinHash(uid) {
-    if (!uid) return null;
-    const fb = await fbReady();
-    const snap = await fb.get(fb.ref(fb.db, `adminPins/${uid}`));
-    if (!snap.exists()) return null;
-    const data = snap.val() || {};
-    return data.pinHash || null;
+  const fb = await wpFirebaseReady();
+  let isAdmin = false;
+  try {
+    const snap = await fb.get(fb.ref(fb.db, `users/${fbUser.uid}/isAdmin`));
+    isAdmin = snap.exists() && snap.val() === true;
+  } catch (e) {
+    isAdmin = false;
   }
-
-  async function setAdminPinHash(uid, pinHash) {
-    if (!uid) throw new Error("Admin UID haipo");
-    if (!pinHash) throw new Error("PIN hash haipo");
-
-    const fb = await fbReady();
-    await fb.set(fb.ref(fb.db, `adminPins/${uid}`), {
-      pinHash,
-      updatedAt: nowIso()
-    });
-    return true;
+  if (!isAdmin) {
+    window.location.href = 'login.html';
+    return false;
   }
+  // Refresh the local cache now that we've confirmed admin status server-side,
+  // so the rest of the page (which reads getUser() synchronously) is accurate.
+  const profile = await syncUserProfile(fbUser);
+  saveUser(profile);
+  return true;
+}
 
-  /* =========================================================
-     OPTIONAL LIVE LISTENERS
-     Kama utahitaji realtime updates kwenye page
-     ========================================================= */
-  function listenRequests(callback) {
-    const fb = ensureFirebase();
-    const requestsRef = fb.ref(fb.db, "requests");
+// Logout — signs out of Firebase Auth and clears local session cache
+async function logout() {
+  clearUser();
+  try {
+    const fb = await wpFirebaseReady();
+    await fb.signOut(fb.auth);
+  } catch (e) { /* ignore — local session is already cleared */ }
+  window.location.href = 'login.html';
+}
 
-    const handler = (snap) => {
-      const list = sortByDateDesc(toArrayFromSnapshot(snap), "tarehe");
-      if (typeof callback === "function") callback(list);
-    };
+/* ---------- On DOM ready ---------- */
+document.addEventListener('DOMContentLoaded', function () {
+  // Preloader
+  setTimeout(() => {
+    const pre = document.querySelector('.preload-container');
+    if (pre) pre.style.display = 'none';
+  }, 800);
+});
 
-    fb.onValue(requestsRef, handler);
-    return () => fb.off(requestsRef, "value", handler);
-  }
+/* ---------- User Management (Admin only) ---------- */
 
-  function listenUsers(callback) {
-    const fb = ensureFirebase();
-    const usersRef = fb.ref(fb.db, "users");
+// Get all registered users — admin only
+async function getUsers() {
+  const fb = await wpFirebaseReady();
+  const snap = await fb.get(fb.ref(fb.db, 'users'));
+  if (!snap.exists()) return [];
+  const obj = snap.val();
+  return Object.keys(obj)
+    .map((uid) => ({ uid, ...obj[uid] }))
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+}
 
-    const handler = (snap) => {
-      const list = [];
-      if (snap.exists()) {
-        snap.forEach((childSnap) => {
-          list.push({ uid: childSnap.key, ...(childSnap.val() || {}) });
-        });
-      }
-      if (typeof callback === "function") callback(list);
-    };
+// Admin: block or unblock a user by uid
+// Must write directly to the blocked child node — the parent $uid .write
+// rule restricts to auth.uid === $uid, but the blocked child rule allows admin.
+async function setUserBlocked(uid, blocked) {
+  const fb = await wpFirebaseReady();
+  await fb.set(fb.ref(fb.db, `users/${uid}/blocked`), blocked ? true : false);
+}
 
-    fb.onValue(usersRef, handler);
-    return () => fb.off(usersRef, "value", handler);
-  }
+// Check if current user is blocked — called on every protected page load
+async function checkBlocked() {
+  const fbUser = await wpAuthReady();
+  if (!fbUser) return false;
+  const fb = await wpFirebaseReady();
+  const snap = await fb.get(fb.ref(fb.db, `users/${fbUser.uid}/blocked`));
+  return snap.exists() && snap.val() === true;
+}
 
-  /* =========================================================
-     UTILITIES FOR UI
-     ========================================================= */
-  function serviceLabel(type) {
-    const map = {
-      "lipa-namba": "Lipa Namba",
-      "till-uwakala": "Till",
-      "wakala-mpya": "Uwakala Mpya",
-      "ongeza-float": "Ongeza Float",
-      "tatizo": "Tatizo / Support"
-    };
-    return map[type] || type || "Huduma";
-  }
-
-  function statusLabel(status) {
-    const map = {
-      pending: "Inasubiri",
-      processing: "Inashughulikiwa",
-      approved: "Imekubaliwa",
-      rejected: "Imekataliwa"
-    };
-    return map[status] || status || "—";
-  }
-
-  function formatDate(dateLike) {
-    if (!dateLike) return "—";
-    const d = new Date(dateLike);
-    if (Number.isNaN(d.getTime())) return "—";
-
-    try {
-      return new Intl.DateTimeFormat("sw-TZ", {
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit"
-      }).format(d);
-    } catch (_) {
-      return d.toLocaleString();
-    }
-  }
-
-  /* =========================================================
-     OPTIONAL: seed first admin manually
-     Tumia hii mara moja browser console:
-     await seedAdminByEmail("you@example.com")
-     ========================================================= */
-  async function seedAdminByEmail(email) {
-    const fb = await fbReady();
-    const allUsers = await getUsers();
-    const found = allUsers.find((u) => String(u.email || "").toLowerCase() === String(email || "").toLowerCase());
-    if (!found) throw new Error("Mtumiaji wa email hiyo hajapatikana kwenye users.");
-    await fb.update(fb.ref(fb.db, `users/${found.uid}`), {
-      isAdmin: true,
-      updatedAt: nowIso()
-    });
-    return true;
-  }
-
-  /* =========================================================
-     OPTIONAL: demo helper
-     ========================================================= */
-  async function ensureUserProfileFromAuth() {
-    const fb = await fbReady();
-    const authUser = fb.auth.currentUser;
-    if (!authUser) return null;
-
-    let profile = await getUserByUid(authUser.uid);
-    if (!profile) {
-      profile = await createOrUpdateUserProfile(authUser.uid, {
-        email: authUser.email || "",
-        jina: authUser.displayName || "Mtumiaji",
-        simu: "",
-        mkoa: "",
-        avatar: authUser.photoURL || "",
-        isAdmin: false,
-        blocked: false
-      });
-    }
-    saveUser(profile);
-    return profile;
-  }
-
-  /* =========================================================
-     EXPOSE GLOBALS
-     ========================================================= */
-  window.sha256Hex = sha256Hex;
-
-  // storage
-  window.saveUser = saveUser;
-  window.getSavedUser = getSavedUser;
-  window.getCurrentUser = getCurrentUser;
-  window.clearSavedUser = clearSavedUser;
-
-  // auth
-  window.registerUser = registerUser;
-  window.loginUser = loginUser;
-  window.loginWithGoogle = loginWithGoogle;
-  window.sendResetPassword = sendResetPassword;
-  window.logout = logout;
-  window.requireAuth = requireAuth;
-  window.requireAdmin = requireAdmin;
-
-  // users
-  window.getUsers = getUsers;
-  window.getUserByUid = getUserByUid;
-  window.createOrUpdateUserProfile = createOrUpdateUserProfile;
-  window.setUserBlocked = setUserBlocked;
-  window.ensureUserProfileFromAuth = ensureUserProfileFromAuth;
-
-  // requests
-  window.createRequest = createRequest;
-  window.getRequests = getRequests;
-  window.getRequestByKey = getRequestByKey;
-  window.getRequestById = getRequestById;
-  window.getRequestsByUser = getRequestsByUser;
-  window.updateRequest = updateRequest;
-  window.deleteRequest = deleteRequest;
-
-  // admin pin
-  window.getAdminPinHash = getAdminPinHash;
-  window.setAdminPinHash = setAdminPinHash;
-
-  // live
-  window.listenRequests = listenRequests;
-  window.listenUsers = listenUsers;
-
-  // ui helpers
-  window.serviceLabel = serviceLabel;
-  window.statusLabel = statusLabel;
-  window.formatDate = formatDate;
-
-  // admin seed helper
-  window.seedAdminByEmail = seedAdminByEmail;
-})();
