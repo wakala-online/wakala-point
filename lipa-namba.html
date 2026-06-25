@@ -4,520 +4,265 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, viewport-fit=cover">
   <title>Omba Lipa Namba — Wakala Point</title>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 
   <style>
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    *{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:Inter;background:#F4F6F8;color:#111;min-height:100vh}
 
-    :root {
-      --green:     #1A9E5C;
-      --green-dk:  #127A44;
-      --green-bg:  #EAF7F0;
-      --amber:     #F5A623;
-      --surface:   #F4F6F8;
-      --white:     #FFFFFF;
-      --text-main: #111827;
-      --text-sub:  #6B7280;
-      --border:    #E5E7EB;
-      --radius:    14px;
-      --shadow:    0 2px 12px rgba(0,0,0,.08);
+    :root{
+      --green:#1A9E5C;
+      --green2:#127A44;
+      --bg:#F4F6F8;
+      --white:#fff;
+      --border:#E5E7EB;
+      --radius:14px;
+      --shadow:0 2px 12px rgba(0,0,0,.08);
     }
 
-    body {
-      font-family: 'Inter', sans-serif;
-      background: var(--surface);
-      color: var(--text-main);
-      min-height: 100vh;
+    .header{
+      position:fixed;top:0;left:0;right:0;height:60px;
+      background:#fff;display:flex;align-items:center;justify-content:center;
+      border-bottom:1px solid var(--border);
+      font-weight:700;
     }
 
-    /* ── HEADER ── */
-    .header {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-      background: var(--white);
-      border-bottom: 1px solid var(--border);
-      height: 60px;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 1px 8px rgba(0,0,0,.06);
-    }
-    .header .back-btn {
-      position: absolute; left: 16px;
-      width: 36px; height: 36px;
-      display: flex; align-items: center; justify-content: center;
-      border-radius: 50%; border: 1px solid var(--border);
-      text-decoration: none; color: var(--text-main);
-      font-size: 18px; transition: background .15s;
-    }
-    .header .back-btn:hover { background: var(--surface); }
-    .header h3 { font-size: 16px; font-weight: 700; }
+    .wrap{max-width:520px;margin:0 auto;padding:80px 16px 40px}
 
-    /* ── WRAP ── */
-    .page-wrap {
-      max-width: 480px;
-      margin: 0 auto;
-      padding: 76px 16px 40px;
+    .card{
+      background:#fff;border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      padding:18px;margin-bottom:14px;
     }
 
-    /* ── INFO BANNER ── */
-    .info-banner {
-      display: flex; gap: 10px; align-items: flex-start;
-      background: var(--green-bg);
-      border: 1px solid #B7E8D0;
-      border-radius: var(--radius);
-      padding: 14px 16px;
-      margin-bottom: 20px;
-      font-size: 13.5px;
-      color: #0F5E38;
-      line-height: 1.5;
+    .title{font-size:12px;font-weight:700;color:#6B7280;margin-bottom:10px}
+
+    /* TYPE */
+    .type-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .type-btn{
+      border:1.5px solid var(--border);
+      padding:16px;border-radius:12px;
+      cursor:pointer;background:#fff;font-weight:600
     }
-    .info-banner .dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green); flex-shrink: 0; margin-top: 5px;
+    .type-btn.active{border-color:var(--green);background:#EAF7F0}
+
+    /* OPTIONS */
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+    .chip{
+      border:1px solid var(--border);
+      padding:12px;border-radius:10px;
+      cursor:pointer;background:#fff;
+      display:flex;justify-content:space-between
+    }
+    .chip.active{border-color:var(--green);background:#EAF7F0}
+
+    .price{font-size:11px;font-weight:700;color:#127A44}
+
+    /* FORM */
+    input,select,textarea{
+      width:100%;padding:10px;border:1px solid var(--border);
+      border-radius:10px;font-family:Inter;font-size:14px
+    }
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    label{font-size:12px;color:#6B7280;font-weight:600;margin-bottom:6px;display:block}
+    .group{margin-bottom:12px}
+
+    .btn{
+      width:100%;padding:14px;border:none;
+      background:var(--green);color:#fff;
+      font-weight:700;border-radius:12px;
+      cursor:pointer
     }
 
-    /* ── CARD ── */
-    .card {
-      background: var(--white);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      padding: 20px;
-      margin-bottom: 16px;
+    .err{display:none;color:red;font-size:13px;margin-bottom:10px}
+    .badge{
+      display:none;
+      margin-top:10px;
+      padding:10px;
+      background:#EAF7F0;
+      border-radius:10px;
+      font-size:13px;
+      font-weight:600;
+      color:#127A44;
     }
 
-    .section-label {
-      font-size: 11px; font-weight: 700;
-      letter-spacing: .08em;
-      text-transform: uppercase;
-      color: var(--text-sub);
-      margin-bottom: 14px;
-    }
-
-    /* ── STEP SELECTOR (Aina ya Lipa Namba) ── */
-    .type-grid {
-      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
-    }
-    .type-btn {
-      border: 2px solid var(--border);
-      border-radius: var(--radius);
-      background: var(--white);
-      padding: 18px 12px;
-      cursor: pointer;
-      text-align: center;
-      transition: border-color .2s, background .2s, transform .1s;
-    }
-    .type-btn:hover  { border-color: var(--green); background: var(--green-bg); }
-    .type-btn.active { border-color: var(--green); background: var(--green-bg); }
-    .type-btn:active { transform: scale(.97); }
-    .type-btn .icon { font-size: 26px; margin-bottom: 6px; }
-    .type-btn .label { font-size: 13px; font-weight: 600; color: var(--text-main); }
-    .type-btn .sub   { font-size: 11px; color: var(--text-sub); margin-top: 2px; }
-
-    /* ── NETWORK CHIPS ── */
-    .net-grid {
-      display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px;
-    }
-    .net-chip {
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      background: var(--white);
-      padding: 12px 14px;
-      cursor: pointer;
-      display: flex; align-items: center; justify-content: space-between;
-      transition: border-color .2s, background .2s;
-    }
-    .net-chip:hover  { border-color: var(--green); background: var(--green-bg); }
-    .net-chip.active { border-color: var(--green); background: var(--green-bg); }
-    .net-chip .net-name { font-size: 13px; font-weight: 600; }
-    .net-chip .net-price {
-      font-size: 11px; font-weight: 700;
-      background: var(--green-bg); color: var(--green-dk);
-      border-radius: 20px; padding: 2px 8px;
-    }
-    .net-chip .net-price.free {
-      background: #FFF3CD; color: #92600A;
-    }
-    .chosen-badge {
-      display: none;
-      align-items: center; gap: 8px;
-      background: var(--green-bg); color: var(--green-dk);
-      border-radius: 10px; padding: 10px 14px;
-      font-size: 13px; font-weight: 600;
-      margin-top: 10px;
-    }
-    .chosen-badge.show { display: flex; }
-    .change-link {
-      margin-left: auto; font-size: 12px;
-      color: var(--green); cursor: pointer; text-decoration: underline;
-    }
-
-    /* ── FORM INPUTS ── */
-    .group-input { margin-bottom: 14px; }
-    .group-input label {
-      display: block;
-      font-size: 12px; font-weight: 600;
-      color: var(--text-sub);
-      margin-bottom: 6px;
-      letter-spacing: .02em;
-    }
-    .group-input input,
-    .group-input select,
-    .group-input textarea {
-      width: 100%;
-      border: 1.5px solid var(--border);
-      border-radius: 10px;
-      padding: 11px 14px;
-      font-size: 14px; font-family: 'Inter', sans-serif;
-      color: var(--text-main);
-      background: var(--white);
-      outline: none;
-      transition: border-color .2s, box-shadow .2s;
-    }
-    .group-input input:focus,
-    .group-input select:focus,
-    .group-input textarea:focus {
-      border-color: var(--green);
-      box-shadow: 0 0 0 3px rgba(26,158,92,.12);
-    }
-    .group-input textarea { resize: vertical; min-height: 80px; }
-
-    .row-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-
-    /* ── DIVIDER ── */
-    .divider {
-      border: none; border-top: 1px solid var(--border);
-      margin: 18px 0;
-    }
-
-    /* ── ERROR ── */
-    .err-msg {
-      display: none;
-      background: #FEF2F2; color: #B91C1C;
-      border: 1px solid #FECACA;
-      border-radius: 10px; padding: 10px 14px;
-      font-size: 13px; margin-bottom: 14px;
-    }
-
-    /* ── SUBMIT BUTTON ── */
-    .btn-submit {
-      width: 100%;
-      background: var(--green);
-      color: #fff;
-      border: none; border-radius: var(--radius);
-      padding: 15px;
-      font-size: 15px; font-weight: 700;
-      cursor: pointer;
-      letter-spacing: .02em;
-      transition: background .2s, transform .1s, box-shadow .2s;
-      box-shadow: 0 4px 14px rgba(26,158,92,.30);
-    }
-    .btn-submit:hover  { background: var(--green-dk); box-shadow: 0 6px 18px rgba(26,158,92,.35); }
-    .btn-submit:active { transform: scale(.98); }
-    .btn-submit:disabled { background: #9CA3AF; box-shadow: none; cursor: not-allowed; }
+    .hide{display:none}
   </style>
 </head>
 
 <body>
 
-<!-- HEADER -->
-<div class="header">
-  <a href="index.html" class="back-btn">&#8592;</a>
-  <h3>Omba Lipa Namba</h3>
-</div>
+<div class="header">Omba Lipa Namba</div>
 
-<div class="page-wrap">
+<div class="wrap">
 
-  <!-- INFO BANNER -->
-  <div class="info-banner">
-    <span class="dot"></span>
-    <span><strong>Lipa Namba</strong> ni namba ya kipekee ya kupokea malipo ya biashara yako kwa urahisi.</span>
-  </div>
+  <!-- STEP 1 -->
+  <div class="card" id="step1">
+    <div class="title">Hatua 1 — Chagua Aina</div>
 
-  <!-- STEP 1: Aina ya Lipa Namba -->
-  <div class="card" id="card-type">
-    <p class="section-label">Hatua ya 1 — Aina ya Lipa Namba</p>
     <div class="type-grid">
-      <button class="type-btn" id="btn-mtandao" onclick="showMtandao()">
-        <div class="icon">📶</div>
-        <div class="label">Lipa Namba</div>
-        <div class="sub">ya Mtandao</div>
-      </button>
-      <button class="type-btn" id="btn-till" onclick="showTill()">
-        <div class="icon">🏪</div>
-        <div class="label">Till Namba</div>
-        <div class="sub">ya Duka</div>
-      </button>
+      <button class="type-btn" id="btn-net" onclick="show('net')">Lipa Namba</button>
+      <button class="type-btn" id="btn-till" onclick="show('till')">Till Namba</button>
     </div>
   </div>
 
-  <!-- STEP 2: Chagua Mtandao -->
-  <div class="card" id="step-mtandao" style="display:none;">
-    <p class="section-label">Hatua ya 2 — Chagua Mtandao</p>
-    <div class="net-grid">
-      <button class="net-chip" onclick="setPackage('Airtel',0,this)">
-        <span class="net-name">Airtel</span>
-        <span class="net-price free">Bure</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Tigo/Yas',0,this)">
-        <span class="net-name">Tigo / Yas</span>
-        <span class="net-price free">Bure</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Vodacom',0,this)">
-        <span class="net-name">Vodacom</span>
-        <span class="net-price free">Bure</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Azam Pesa',5000,this)">
-        <span class="net-name">Azam Pesa</span>
-        <span class="net-price">TZS 5,000</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Halotel',5000,this)">
-        <span class="net-name">Halotel</span>
-        <span class="net-price">TZS 5,000</span>
-      </button>
+  <!-- NETWORK -->
+  <div class="card hide" id="netBox">
+    <div class="title">Chagua Mtandao</div>
+
+    <div class="grid">
+      <div class="chip" onclick="pick('Airtel',0,this)">Airtel <span class="price">Bure</span></div>
+      <div class="chip" onclick="pick('Tigo/Yas',0,this)">Tigo/Yas <span class="price">Bure</span></div>
+      <div class="chip" onclick="pick('Vodacom',0,this)">Vodacom <span class="price">Bure</span></div>
+      <div class="chip" onclick="pick('Azam Pesa',5000,this)">Azam <span class="price">5,000</span></div>
+      <div class="chip" onclick="pick('Halotel',5000,this)">Halotel <span class="price">5,000</span></div>
     </div>
-    <div class="chosen-badge" id="chosen-badge">
-      ✅ <span id="chosen-text">–</span>
-      <span class="change-link" onclick="clearPackage()">Badilisha</span>
-    </div>
+
+    <div class="badge" id="badge"></div>
   </div>
 
-  <!-- STEP 2: Chagua Till -->
-  <div class="card" id="step-till" style="display:none;">
-    <p class="section-label">Hatua ya 2 — Aina ya Till</p>
-    <div class="net-grid">
-      <button class="net-chip" onclick="setPackage('Till Airtel',3000,this)">
-        <span class="net-name">Till Airtel</span>
-        <span class="net-price">TZS 3,000</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Till Halotel',10000,this)">
-        <span class="net-name">Till Halotel</span>
-        <span class="net-price">TZS 10,000</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Till Vodacom',30000,this)">
-        <span class="net-name">Till Vodacom</span>
-        <span class="net-price">TZS 30,000</span>
-      </button>
-      <button class="net-chip" onclick="setPackage('Azam Pesa Till',10000,this)">
-        <span class="net-name">Azam Pesa</span>
-        <span class="net-price">TZS 10,000</span>
-      </button>
+  <!-- TILL -->
+  <div class="card hide" id="tillBox">
+    <div class="title">Chagua Till</div>
+
+    <div class="grid">
+      <div class="chip" onclick="pick('Till Airtel',3000,this)">Till Airtel <span class="price">3,000</span></div>
+      <div class="chip" onclick="pick('Till Halotel',10000,this)">Till Halotel <span class="price">10,000</span></div>
+      <div class="chip" onclick="pick('Till Vodacom',30000,this)">Till Vodacom <span class="price">30,000</span></div>
+      <div class="chip" onclick="pick('Azam Till',10000,this)">Azam <span class="price">10,000</span></div>
     </div>
-    <div class="chosen-badge" id="chosen-badge-till">
-      ✅ <span id="chosen-text-till">–</span>
-      <span class="change-link" onclick="clearPackage()">Badilisha</span>
-    </div>
+
+    <div class="badge" id="badge2"></div>
   </div>
 
   <!-- FORM -->
   <div class="card">
-    <p class="section-label">Hatua ya 3 — Taarifa za Mwombaji</p>
+    <div class="title">Taarifa za Mwombaji</div>
 
-    <div class="group-input">
-      <label>Jina Kamili *</label>
-      <input type="text" id="f-jina" placeholder="Mfano: Amina Hassan">
+    <div class="group">
+      <label>Jina</label>
+      <input id="jina">
     </div>
-    <div class="row-2">
-      <div class="group-input">
-        <label>Namba ya Simu *</label>
-        <input type="tel" id="f-simu" placeholder="+255...">
+
+    <div class="row">
+      <div class="group">
+        <label>Simu</label>
+        <input id="simu">
       </div>
-      <div class="group-input">
-        <label>Namba ya Pili</label>
-        <input type="tel" id="f-simu2" placeholder="Hiari">
-      </div>
-    </div>
-    <div class="row-2">
-      <div class="group-input">
-        <label>Aina ya Kitambulisho *</label>
-        <select id="f-id-type">
-          <option value="">-- Chagua --</option>
-          <option>NIDA</option>
-          <option>Passport</option>
-          <option>Leseni</option>
-          <option>Voter ID</option>
-        </select>
-      </div>
-      <div class="group-input">
-        <label>Namba ya Kitambulisho *</label>
-        <input type="text" id="f-id-no" placeholder="Namba...">
+      <div class="group">
+        <label>Pili</label>
+        <input id="simu2">
       </div>
     </div>
 
-    <hr class="divider">
-    <p class="section-label">Taarifa za Biashara</p>
-
-    <div class="group-input">
-      <label>Jina la Biashara *</label>
-      <input type="text" id="f-biz-name" placeholder="Mfano: Duka la Amina">
-    </div>
-    <div class="row-2">
-      <div class="group-input">
-        <label>Aina ya Biashara *</label>
-        <select id="f-biz-type">
-          <option value="">-- Chagua --</option>
-          <option>Duka</option>
-          <option>Salon</option>
-          <option>Mgahawa</option>
-          <option>Nyingine</option>
-        </select>
-      </div>
-      <div class="group-input">
-        <label>BRELA / TRA</label>
-        <input type="text" id="f-reg-no" placeholder="Hiari">
-      </div>
+    <div class="group">
+      <label>Biashara</label>
+      <input id="biz">
     </div>
 
-    <hr class="divider">
-    <p class="section-label">Mahali pa Biashara</p>
+    <div class="err" id="err"></div>
 
-    <div class="row-2">
-      <div class="group-input">
-        <label>Mkoa *</label>
-        <select id="f-mkoa">
-          <option>Dar es Salaam</option>
-          <option>Mwanza</option>
-          <option>Arusha</option>
-          <option>Mbeya</option>
-        </select>
-      </div>
-      <div class="group-input">
-        <label>Wilaya *</label>
-        <input type="text" id="f-wilaya" placeholder="Wilaya">
-      </div>
-    </div>
-    <div class="row-2">
-      <div class="group-input">
-        <label>Kata *</label>
-        <input type="text" id="f-kata" placeholder="Kata">
-      </div>
-      <div class="group-input">
-        <label>Mtandao *</label>
-        <select id="f-mtandao">
-          <option>Airtel</option>
-          <option>Vodacom</option>
-          <option>Tigo</option>
-          <option>Halotel</option>
-        </select>
-      </div>
-    </div>
-
-    <hr class="divider">
-
-    <div class="group-input">
-      <label>Maelezo ya Ziada</label>
-      <textarea id="f-notes" placeholder="Habari yoyote ya ziada..."></textarea>
-    </div>
-
-    <p class="err-msg" id="err-msg"></p>
-
-    <button class="btn-submit" onclick="submitLipaNamba()">
-      Tuma Ombi →
-    </button>
+    <button class="btn" onclick="submit()">Tuma Ombi</button>
   </div>
 
-</div><!-- /page-wrap -->
+</div>
 
-<!-- External scripts (same as original) -->
 <script type="module" src="firebase-init.js"></script>
-<script src="jquery.min.js"></script>
 <script src="wakala.js"></script>
-<script src="main.js"></script>
-<script src="sidebar.js"></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    requireAuth();
-  });
+let type = "";
+let packageName = "";
+let price = 0;
 
-  function showMtandao() {
-    document.getElementById('step-mtandao').style.display = 'block';
-    document.getElementById('step-till').style.display = 'none';
-    document.getElementById('btn-mtandao').classList.add('active');
-    document.getElementById('btn-till').classList.remove('active');
+function show(t){
+  type = t;
+
+  document.getElementById('netBox').classList.add('hide');
+  document.getElementById('tillBox').classList.add('hide');
+
+  document.getElementById('btn-net').classList.remove('active');
+  document.getElementById('btn-till').classList.remove('active');
+
+  if(t === "net"){
+    document.getElementById('netBox').classList.remove('hide');
+    document.getElementById('btn-net').classList.add('active');
   }
 
-  function showTill() {
-    document.getElementById('step-till').style.display = 'block';
-    document.getElementById('step-mtandao').style.display = 'none';
+  if(t === "till"){
+    document.getElementById('tillBox').classList.remove('hide');
     document.getElementById('btn-till').classList.add('active');
-    document.getElementById('btn-mtandao').classList.remove('active');
+  }
+}
+
+function pick(name, p, el){
+  packageName = name;
+  price = p;
+
+  document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+
+  const text = name + " - " + (p === 0 ? "Bure" : p.toLocaleString());
+
+  if(type === "net"){
+    const b = document.getElementById('badge');
+    b.style.display = "block";
+    b.innerText = text;
+  } else {
+    const b = document.getElementById('badge2');
+    b.style.display = "block";
+    b.innerText = text;
   }
 
-  function setPackage(name, price, el) {
-    localStorage.setItem("lipa_package", name);
-    localStorage.setItem("lipa_price", price);
+  localStorage.setItem("package", name);
+  localStorage.setItem("price", p);
+}
 
-    // Mark active chip
-    el.closest('.net-grid').querySelectorAll('.net-chip').forEach(c => c.classList.remove('active'));
-    el.classList.add('active');
+async function submit(){
 
-    // Show badge
-    const isTill = name.startsWith('Till') || name === 'Azam Pesa Till';
-    const badgeId = isTill ? 'chosen-badge-till' : 'chosen-badge';
-    const textId  = isTill ? 'chosen-text-till' : 'chosen-text';
-    const priceStr = price === 0 ? 'Bure' : 'TZS ' + price.toLocaleString();
-    document.getElementById(textId).textContent = name + ' — ' + priceStr;
-    document.getElementById(badgeId).classList.add('show');
+  const jina = document.getElementById('jina').value.trim();
+  const simu = document.getElementById('simu').value.trim();
+  const biz = document.getElementById('biz').value.trim();
+
+  const err = document.getElementById('err');
+
+  if(!jina || !simu || !biz){
+    err.style.display = "block";
+    err.innerText = "Jaza taarifa zote muhimu";
+    return;
   }
 
-  function clearPackage() {
-    localStorage.removeItem("lipa_package");
-    localStorage.removeItem("lipa_price");
-    document.querySelectorAll('.net-chip').forEach(c => c.classList.remove('active'));
-    document.getElementById('chosen-badge').classList.remove('show');
-    document.getElementById('chosen-badge-till').classList.remove('show');
+  if(!packageName){
+    err.style.display = "block";
+    err.innerText = "Chagua package kwanza";
+    return;
   }
 
-  async function submitLipaNamba() {
-    const f   = (id) => document.getElementById(id).value.trim();
-    const err = document.getElementById('err-msg');
-    err.style.display = 'none';
+  err.style.display = "none";
 
-    const required = [
-      'f-jina','f-simu','f-id-type','f-id-no',
-      'f-biz-name','f-biz-type','f-mkoa','f-wilaya','f-kata','f-mtandao'
-    ];
+  const btn = document.querySelector('.btn');
+  btn.disabled = true;
+  btn.innerText = "Inatuma...";
 
-    for (let id of required) {
-      if (!f(id)) {
-        err.style.display = 'block';
-        err.textContent = "⚠️ Tafadhali jaza sehemu zote zilizowekwa alama (*)";
-        return;
-      }
-    }
+  const data = {
+    jina, simu, biz,
+    package: packageName,
+    price: price
+  };
 
-    if (!localStorage.getItem("lipa_package")) {
-      err.style.display = 'block';
-      err.textContent = "⚠️ Tafadhali chagua aina ya Lipa Namba na mtandao";
-      return;
-    }
-
-    const btn = document.querySelector('.btn-submit');
-    btn.disabled = true;
-    btn.textContent = 'Inatuma…';
-
-    const details = {
-      jina: f('f-jina'), simu: f('f-simu'), simu2: f('f-simu2'),
-      aina_id: f('f-id-type'), namba_id: f('f-id-no'),
-      jina_biashara: f('f-biz-name'), aina_biashara: f('f-biz-type'),
-      namba_ya_biashara: f('f-reg-no'),
-      mkoa: f('f-mkoa'), wilaya: f('f-wilaya'), kata: f('f-kata'), mtandao: f('f-mtandao'),
-      maelezo: f('f-notes'),
-      package: localStorage.getItem("lipa_package"),
-      price: localStorage.getItem("lipa_price")
-    };
-
-    try {
-      const req = await submitRequest('lipa-namba', details);
-      window.location.href = `ombi-detail.html?id=${req.id}&new=1`;
-    } catch (e) {
-      err.style.display = 'block';
-      err.textContent = "❌ Hitilafu imetokea. Jaribu tena.";
-      btn.disabled = false;
-      btn.textContent = 'Tuma Ombi →';
-    }
+  try{
+    const res = await submitRequest("lipa-namba", data);
+    window.location.href = "ombi-detail.html?id=" + res.id;
+  } catch(e){
+    err.style.display = "block";
+    err.innerText = "Hitilafu imejitokeza";
+    btn.disabled = false;
+    btn.innerText = "Tuma Ombi";
   }
+}
 </script>
 
 </body>
 </html>
-```
